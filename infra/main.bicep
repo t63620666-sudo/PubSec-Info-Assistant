@@ -860,7 +860,7 @@ module function 'br/public:avm/res/web/site:0.15.1' = {
       MEDIA_SUBMIT_QUEUE                          : mediaSubmitQueue
       TEXT_ENRICHMENT_QUEUE                       : textEnrichmentQueue
       IMAGE_ENRICHMENT_QUEUE                      : imageEnrichmentQueue
-      MAX_SECONDS_HIDE_ON_UPLOAD                  : maxSecondsHideOnUpload
+      MAX_SECONDS_HIDE_ON_UPLOAD                  : functionMaxSecondsHideOnUpload
       MAX_SUBMIT_REQUEUE_COUNT                    : maxSubmitRequeueCount
       POLL_QUEUE_SUBMIT_BACKOFF                   : pollQueueSubmitBackoff
       PDF_SUBMIT_QUEUE_BACKOFF                    : pdfSubmitQueueBackoff
