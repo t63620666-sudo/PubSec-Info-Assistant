@@ -15,6 +15,9 @@ param appServicePlanName string
 @description('The name of the existing Function App Service Plan to connect to the VNet')
 param funcServicePlanName string
 
+@description('The name of the existing Enrichment Function App Service Plan to connect to the VNet')
+param enrichServicePlanName string
+
 param usePrivateEndpoint bool = false
 
 param useExistingVnet bool = false
@@ -31,6 +34,9 @@ param subnetAppIntAddressPrefix string
 
 param subnetFuncIntName string
 param subnetFuncIntAddressPrefix string
+
+param subnetEnrichIntName string = ''
+param subnetEnrichIntAddressPrefix string = ''
 
 @allowed(['appservice', 'containerapps'])
 param deploymentTarget string
@@ -51,6 +57,10 @@ resource funcServicePlan 'Microsoft.Web/serverfarms@2022-03-01' existing = {
   name: funcServicePlanName
 }
 
+resource enrichServicePlan 'Microsoft.Web/serverfarms@2022-03-01' existing = {
+  name: enrichServicePlanName
+}
+
 resource existingVnet 'Microsoft.Network/virtualNetworks@2021-02-01' existing = if (useExistingVnet) {
   name: vnetName
   scope: resourceGroup(existingVnetSubscription, existingVnetResourceGroup)
@@ -69,6 +79,11 @@ resource existingAppIntSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02
 resource existingFuncIntSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = if (useExistingVnet) {
   parent: existingVnet
   name: subnetFuncIntName
+}
+
+resource existingEnrichIntSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = if (useExistingVnet) {
+  parent: existingVnet
+  name: subnetEnrichIntName
 }
 
 module vnet './core/networking/vnet.bicep' = if (usePrivateEndpoint && !useExistingVnet) {
@@ -123,6 +138,23 @@ module vnet './core/networking/vnet.bicep' = if (usePrivateEndpoint && !useExist
           ]
         }
       }
+      {
+        name: subnetEnrichIntName
+        properties: {
+          addressPrefix: subnetEnrichIntAddressPrefix
+          privateEndpointNetworkPolicies: 'Enabled'
+          privateLinkServiceNetworkPolicies: 'Enabled'
+          delegations: [
+            {
+              id: enrichServicePlan.id
+              name: enrichServicePlan.name
+              properties: {
+                serviceName: 'Microsoft.Web/serverFarms'
+              }
+            }
+          ]
+        }
+      }
     ]
   }
 }
@@ -135,5 +167,8 @@ output appSubnetId string = usePrivateEndpoint
   : ''
 output funcIntSubnetId string = usePrivateEndpoint
   ? (useExistingVnet ? existingFuncIntSubnet.id : vnet.outputs.vnetSubnets[2].id)
+  : ''
+output enrichIntSubnetId string = usePrivateEndpoint
+  ? (useExistingVnet ? existingEnrichIntSubnet.id : vnet.outputs.vnetSubnets[3].id)
   : ''
 output vnetName string = usePrivateEndpoint ? (useExistingVnet ? existingVnet.name : vnet.outputs.name) : ''

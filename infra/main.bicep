@@ -1,5 +1,6 @@
 targetScope = 'subscription'
 
+param applicationTitle string = ''
 param buildNumber string = '1.0.0'
 
 param createResourceGroup bool = true
@@ -25,6 +26,7 @@ param functionServicePlanName string = '' // Set in main.parameters.json
 param functionServiceSkuName string // Set in main.parameters.json
 param functionServiceSkuTier string // Set in main.parameters.json
 param functionServiceName string = '' // Set in main.parameters.json
+param functionMaxSecondsHideOnUpload string = '300'
 
 param enrichmentServiceAseId string = '' // Set in main.parameters.json
 param enrichmentServiceName string = '' // Set in main.parameters.json
@@ -61,6 +63,36 @@ param chatHistoryDatabaseName string = 'chat-database'
 param chatHistoryContainerName string = 'chat-history-v2'
 param chatHistoryVersion string = 'cosmosdb-v2'
 
+param documentIntelligenceServiceName string = '' // Set in main.parameters.json
+param documentIntelligenceResourceGroupName string = '' // Set in main.parameters.json
+
+// Limited regions for new version:
+// https://learn.microsoft.com/azure/ai-services/document-intelligence/concept-layout
+@description('Location for the Document Intelligence resource group')
+@allowed(['eastus', 'westus2', 'westeurope'])
+@metadata({
+  azd: {
+    type: 'location'
+  }
+})
+param documentIntelligenceResourceGroupLocation string
+param documentIntelligenceSkuName string // Set in main.parameters.json
+
+param cognitiveServiceName string = '' // Set in main.parameters.json
+param cognitiveServiceResourceGroupName string = '' // Set in main.parameters.json
+
+// Limited regions for new version:
+// https://learn.microsoft.com/azure/ai-services/document-intelligence/concept-layout
+@description('Location for the Document Intelligence resource group')
+@allowed(['eastus', 'westus2', 'westeurope'])
+@metadata({
+  azd: {
+    type: 'location'
+  }
+})
+param cognitiveServiceResourceGroupLocation string
+param cognitiveServiceSkuName string // Set in main.parameters.json
+
 param searchServiceName string = '' // Set in main.parameters.json
 param searchServiceResourceGroupName string = '' // Set in main.parameters.json
 param searchServiceLocation string = '' // Set in main.parameters.json
@@ -72,6 +104,7 @@ param searchIndexerName string // Set in main.parameters.json
 param searchQueryLanguage string // Set in main.parameters.json
 param searchQuerySpeller string // Set in main.parameters.json
 param searchServiceSemanticRankerLevel string // Set in main.parameters.json
+param searchScope string = ''
 var actualSearchServiceSemanticRankerLevel = (searchServiceSkuName == 'free')
   ? 'disabled'
   : searchServiceSemanticRankerLevel
@@ -118,6 +151,7 @@ param chatGptDeploymentName string = ''
 param chatGptDeploymentVersion string = ''
 param chatGptDeploymentSkuName string = ''
 param chatGptDeploymentCapacity int = 0
+param chatWarningBannerText string
 
 var chatGpt = {
   modelName: !empty(chatGptModelName)
@@ -164,15 +198,18 @@ param existingVnetName string = ''
 param existingBackendSubnetName string = ''
 param existingAppIntSubnetName string = ''
 param existingFuncIntSubnetName string = ''
+param existingEnrichIntSubnetName string = ''
 
 param subnetBackendName string = 'backend-subnet'
 param subnetAppIntName string = 'app-int-subnet'
 param subnetFuncIntName string = 'func-int-subnet'
+param subnetEnrichIntName string = 'enrich-int-subnet'
 
 param vnetAddressPrefix string = '10.0.0.0/16'
 param subnetBackendAddressPrefix string = '10.0.1.0/24'
 param subnetAppIntAddressPrefix string = '10.0.2.0/24'
 param subnetFuncIntAddressPrefix string = '10.0.3.0/24'
+param subnetEnrichIntAddressPrefix string = '10.0.4.0/24'
 
 param allowedIps string = ''
 
@@ -203,6 +240,14 @@ param clientAppId string = ''
 param clientAppSecret string = ''
 // Used for optional CORS support for alternate frontends
 param allowedOrigin string = '' // should start with https://, shouldn't end with a /
+
+param useSemanticReranker bool = true
+param enableWebChat bool = true
+param enableBingSafeSearch bool = true
+param enableUngroundedChat bool = false
+param enableMathAssitant bool = true
+param enableTabularDataAssistant bool = true
+param maxCsvFileSize string = '20'
 
 // Configure CORS for allowing different web apps to use the backend
 // For more information please see https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
@@ -280,6 +325,14 @@ resource searchServiceResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-
 
 resource cosmosDbResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (!empty(cosmodDbResourceGroupName)) {
   name: !empty(cosmodDbResourceGroupName) ? cosmodDbResourceGroupName : mainResourceGroup.name
+}
+
+resource documentIntelligenceResourceGroup 'Microsoft.Resources/resourceGroups@2024-11-01' existing = if (!empty(documentIntelligenceResourceGroupName)) {
+  name: !empty(documentIntelligenceResourceGroupName) ? documentIntelligenceResourceGroupName : mainResourceGroup.name
+}
+
+resource cognitiveServiceResourceGroup 'Microsoft.Resources/resourceGroups@2024-11-01' existing = if (!empty(cognitiveServiceResourceGroupName)) {
+  name: !empty(cognitiveServiceResourceGroupName) ? cognitiveServiceResourceGroupName : mainResourceGroup.name
 }
 
 module storage 'core/storage/storage-account.bicep' = {
@@ -550,85 +603,7 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.6.1' = {
             }
           }
         ]
-      }
-      {
-        name: videoMetadataDatabaseName
-        throughput: (cosmosDbSkuName == 'serverless') ? null : cosmosDbThroughput
-        containers: [
-          {
-            name: videoMetadataContainerName
-            kind: 'Hash'
-            paths: [
-              '/entra_oid'
-            ]
-            indexingPolicy: {
-              indexingMode: 'consistent'
-              automatic: true
-              includedPaths: [
-                {
-                  path: '/entra_oid/?'
-                }
-                {
-                  path: '/video_id/?'
-                }
-                {
-                  path: '/video_path/?'
-                }
-                {
-                  path: '/action_summary/?'
-                }
-                {
-                  path: '/chapter_summary/?'
-                }
-              ]
-              excludedPaths: [
-                {
-                  path: '/*'
-                }
-              ]
-            }
-          }
-        ]
-      }
-      {
-        name: videoProcessingDatabaseName
-        throughput: (cosmosDbSkuName == 'serverless') ? null : cosmosDbThroughput
-        containers: [
-          {
-            name: videoProcessingContainerName
-            kind: 'Hash'
-            paths: [
-              '/video_id'
-            ]
-            indexingPolicy: {
-              indexingMode: 'consistent'
-              automatic: true
-              includedPaths: [
-                {
-                  path: '/video_id/?'
-                }
-                {
-                  path: '/status/?'
-                }
-                {
-                  path: '/steps/?'
-                }
-                {
-                  path: '/createdAt/?'
-                }
-                {
-                  path: '/updatedAt/?'
-                }
-              ]
-              excludedPaths: [
-                {
-                  path: '/*'
-                }
-              ]
-            }
-          }
-        ]
-      }
+      }      
     ]
   }
 }
@@ -649,6 +624,48 @@ module containerRegistry 'br/public:avm/res/container-registry/registry:0.5.1' =
   }
 }
 
+module documentIntelligence 'br/public:avm/res/cognitive-services/account:0.7.2' = {
+  name: 'documentintelligence'
+  scope: documentIntelligenceResourceGroup
+  params: {
+    name: !empty(documentIntelligenceServiceName)
+      ? documentIntelligenceServiceName
+      : '${abbrs.cognitiveServicesDocumentIntelligence}${resourceToken}'
+    kind: 'FormRecognizer'
+    customSubDomainName: !empty(documentIntelligenceServiceName)
+      ? documentIntelligenceServiceName
+      : '${abbrs.cognitiveServicesDocumentIntelligence}${resourceToken}'
+    publicNetworkAccess: publicNetworkAccess
+    networkAcls: {
+      defaultAction: 'Deny'
+    }
+    location: documentIntelligenceResourceGroupLocation
+    disableLocalAuth: true
+    tags: tags
+    sku: documentIntelligenceSkuName
+  }
+}
+
+module cognitiveServices 'br/public:avm/res/cognitive-services/account:0.7.2' = {
+  name: 'cognitiveservices'
+  scope: cognitiveServiceResourceGroup
+  params: {
+    name: !empty(cognitiveServiceName) ? cognitiveServiceName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
+    kind: 'CognitiveServices'
+    customSubDomainName: !empty(documentIntelligenceServiceName)
+      ? documentIntelligenceServiceName
+      : '${abbrs.cognitiveServicesDocumentIntelligence}${resourceToken}'
+    publicNetworkAccess: publicNetworkAccess
+    networkAcls: {
+      defaultAction: 'Deny'
+    }
+    location: cognitiveServiceResourceGroupLocation
+    disableLocalAuth: true
+    tags: tags
+    sku: cognitiveServiceSkuName
+  }
+}
+
 module backendPlan 'core/host/appserviceplan.bicep' = if (deploymentTarget == 'appservice') {
   name: 'appserviceplan'
   scope: mainResourceGroup
@@ -666,18 +683,62 @@ module backendPlan 'core/host/appserviceplan.bicep' = if (deploymentTarget == 'a
   }
 }
 
+// TODO: Confirm empty variables
+var appEnvVariables = {
+    AZURE_BLOB_STORAGE_ACCOUNT           : storage.outputs.name
+    AZURE_BLOB_STORAGE_ENDPOINT          : storage.outputs.primaryEndpoints.blob
+    AZURE_BLOB_STORAGE_CONTAINER         : 'content'
+    AZURE_BLOB_STORAGE_UPLOAD_CONTAINER  : 'upload'
+    AZURE_OPENAI_SERVICE                 : !deployAzureOpenAi ? existingOpenAi.name : openAi.outputs.name
+    AZURE_OPENAI_RESOURCE_GROUP          : !deployAzureOpenAi ? openAiResourceGroup : openAiResourceGroup.name
+    AZURE_OPENAI_ENDPOINT                : !deployAzureOpenAi ? existingOpenAi.properties.endpoint : openAi.outputs.endpoint
+    AZURE_OPENAI_AUTHORITY_HOST          : authenticationIssuerUri
+    AZURE_ARM_MANAGEMENT_API             : ''
+    AZURE_SEARCH_INDEX                   : searchIndexName
+    AZURE_SEARCH_SERVICE                 : searchService.outputs.name
+    AZURE_SEARCH_SERVICE_ENDPOINT        : searchService.outputs.endpoint
+    AZURE_SEARCH_AUDIENCE                : searchScope
+    AZURE_OPENAI_CHATGPT_DEPLOYMENT      : chatGpt.deploymentName
+    AZURE_OPENAI_CHATGPT_MODEL_NAME      : chatGpt.modelName
+    AZURE_OPENAI_CHATGPT_MODEL_VERSION   : chatGpt.deploymentVersion
+    USE_AZURE_OPENAI_EMBEDDINGS          : true
+    EMBEDDING_DEPLOYMENT_NAME            : embedding.deploymentName
+    AZURE_OPENAI_EMBEDDINGS_MODEL_NAME   : embedding.modelName
+    AZURE_OPENAI_EMBEDDINGS_MODEL_VERSION: embedding.deploymentVersion
+    COSMOSDB_URL                         : cosmosDb.outputs.endpoint
+    COSMOSDB_LOG_DATABASE_NAME           : statusLogDatabaseName
+    COSMOSDB_LOG_CONTAINER_NAME          : statusLogDatabaseName
+    QUERY_TERM_LANGUAGE                  : searchQueryLanguage
+    AZURE_SUBSCRIPTION_ID                : subscription().subscriptionId
+    CHAT_WARNING_BANNER_TEXT             : chatWarningBannerText
+    TARGET_EMBEDDINGS_MODEL              : 'azure-openai_${embedding.deploymentName}'
+    ENRICHMENT_APPSERVICE_URL            : enrichmentApp.outputs.defaultHostname
+    AZURE_AI_ENDPOINT                    : cognitiveServices.outputs.endpoint
+    AZURE_AI_LOCATION                    : cognitiveServices.outputs.location
+    APPLICATION_TITLE                    : empty(applicationTitle) ? 'Information Assistant, built with Azure OpenAI' : applicationTitle
+    USE_SEMANTIC_RERANKER                : useSemanticReranker
+    BING_SEARCH_ENDPOINT                 : ''
+    ENABLE_WEB_CHAT                      : enableWebChat
+    ENABLE_BING_SAFE_SEARCH              : enableBingSafeSearch
+    ENABLE_UNGROUNDED_CHAT               : enableUngroundedChat
+    ENABLE_MATH_ASSISTANT                : enableMathAssitant
+    ENABLE_TABULAR_DATA_ASSISTANT        : enableTabularDataAssistant
+    MAX_CSV_FILE_SIZE                    : maxCsvFileSize
+    AZURE_AI_CREDENTIAL_DOMAIN           : ''
+}
+
 // App Service for the web application (Python Quart app with JS frontend)
-module backend 'core/host/appservice.bicep' = if (deploymentTarget == 'appservice') {
+module webapp 'core/host/appservice.bicep' = if (deploymentTarget == 'appservice') {
   name: 'web'
   scope: mainResourceGroup
   params: {
-    name: !empty(backendServiceName) ? backendServiceName : '${abbrs.webSitesAppService}backend-${resourceToken}'
+    name: !empty(backendServiceName) ? backendServiceName : '${abbrs.webSitesAppService}webapp-${resourceToken}'
     location: location
-    tags: union(tags, { 'azd-service-name': 'backend' })
+    tags: union(tags, { 'azd-service-name': 'webapp' })
     // Need to check deploymentTarget again due to https://github.com/Azure/bicep/issues/3990
     appServicePlanId: deploymentTarget == 'appservice' ? backendPlan.outputs.id : ''
     kind: 'app,linux,container'
-    imageName: '${containerRegistry.outputs.loginServer}/backend:latest'
+    imageName: '${containerRegistry.outputs.loginServer}/webapp:latest'
     scmDoBuildDuringDeployment: true
     managedIdentity: true
     ipRules: ipRules
@@ -780,7 +841,119 @@ module function 'br/public:avm/res/web/site:0.15.1' = {
       AzureFunctionsJobHost__logging__logLevel__default: 'Trace'
       FUNCTIONS_EXTENSION_VERSION: '~4'
       FUNCTIONS_WORKER_RUNTIME: 'python'
-      // TODO: Add more app settings here
+      BLOB_STORAGE_ACCOUNT                        : storage.outputs.name
+      BLOB_STORAGE_ACCOUNT_ENDPOINT               : storage.outputs.primaryEndpoints.blob
+      BLOB_STORAGE_ACCOUNT_OUTPUT_CONTAINER_NAME  : storageContainerName
+      BLOB_STORAGE_ACCOUNT_UPLOAD_CONTAINER_NAME  : 'upload'      
+      BLOB_STORAGE_ACCOUNT_LOG_CONTAINER_NAME     : 'logs'
+      AZURE_QUEUE_STORAGE_ENDPOINT                : storage.outputs.primaryEndpoints.queue
+      CHUNK_TARGET_SIZE                           : chunkTargetSize
+      TARGET_PAGES                                : targetPages
+      FR_API_VERSION                              : formRecognizerApiVersion
+      AZURE_FORM_RECOGNIZER_ENDPOINT              : documentIntelligence.outputs.endpoint
+      COSMOSDB_URL                                : cosmosDb.outputs.endpoint
+      COSMOSDB_LOG_DATABASE_NAME                  : statusLogDatabaseName
+      COSMOSDB_LOG_CONTAINER_NAME                 : statusLogContainerName
+      PDF_SUBMIT_QUEUE                            : pdfSubmitQueue
+      PDF_POLLING_QUEUE                           : pdfPollingQueue
+      NON_PDF_SUBMIT_QUEUE                        : nonPdfSubmitQueue
+      MEDIA_SUBMIT_QUEUE                          : mediaSubmitQueue
+      TEXT_ENRICHMENT_QUEUE                       : textEnrichmentQueue
+      IMAGE_ENRICHMENT_QUEUE                      : imageEnrichmentQueue
+      MAX_SECONDS_HIDE_ON_UPLOAD                  : maxSecondsHideOnUpload
+      MAX_SUBMIT_REQUEUE_COUNT                    : maxSubmitRequeueCount
+      POLL_QUEUE_SUBMIT_BACKOFF                   : pollQueueSubmitBackoff
+      PDF_SUBMIT_QUEUE_BACKOFF                    : pdfSubmitQueueBackoff
+      MAX_POLLING_REQUEUE_COUNT                   : maxPollingRequeueCount
+      SUBMIT_REQUEUE_HIDE_SECONDS                 : submitRequeueHideSeconds
+      POLLING_BACKOFF                             : pollingBackoff
+      MAX_READ_ATTEMPTS                           : maxReadAttempts
+      AZURE_AI_KEY                                : ''
+      AZURE_AI_ENDPOINT                           : enrichmentEndpoint
+      ENRICHMENT_NAME                             : enrichmentName
+      AZURE_AI_LOCATION                           : enrichmentLocation
+      TARGET_TRANSLATION_LANGUAGE                 : targetTranslationLanguage
+      MAX_ENRICHMENT_REQUEUE_COUNT                : maxEnrichmentRequeueCount
+      ENRICHMENT_BACKOFF                          : enrichmentBackoff
+      EMBEDDINGS_QUEUE                            : EMBEDDINGS_QUEUE
+      AZURE_SEARCH_SERVICE_ENDPOINT               : azureSearchServiceEndpoint
+      AZURE_SEARCH_INDEX                          : azureSearchIndex
+      AZURE_AI_CREDENTIAL_DOMAIN                  : azure_ai_credential_domain
+      AZURE_OPENAI_AUTHORITY_HOST                 : azure_environment
+      LOCAL_DEBUG                                 : string(false)
+    }
+  }
+}
+
+module enrichmentServicePlan 'core/host/appserviceplan.bicep' = {
+  name: 'enrichmentserviceplan'
+  scope: mainResourceGroup
+  params: {
+    name: !empty(enrichmentServicePlanName) ? enrichmentServicePlanName : '${abbrs.webServerFarms}enrich-${resourceToken}'
+    location: location
+    tags: tags
+    aseId: enrichmentServiceAseId
+    sku: {
+      name: enrichmentServiceSkuName
+      capacity: 1
+      tier: enrichmentServiceSkuTier
+    }
+    kind: 'linux'
+  }
+}
+
+module enrichmentApp 'br/public:avm/res/web/site:0.15.1' = {
+  name: 'enrichmentApp'
+  scope: mainResourceGroup
+  params: {
+    // Required parameters
+    kind: 'app,linux,container'
+    tags: union(tags, { 'azd-service-name': 'enrichment' })
+    name: !empty(enrichmentServiceName) ? enrichmentServiceName : '${abbrs.webSitesAppService}enrich-${resourceToken}'
+    serverFarmResourceId: enrichmentServicePlan.outputs.id
+    appInsightResourceId: useApplicationInsights ? monitoring.outputs.applicationInsightsId : ''
+    managedIdentities: {
+      systemAssigned: true
+    }
+    publicNetworkAccess: !empty(ipRules) ? 'Enabled' : publicNetworkAccess
+    virtualNetworkSubnetId: empty(enrichmentServiceAseId) ? isolation.outputs.enrichIntSubnetId : null
+    vnetImagePullEnabled: true
+    vnetContentShareEnabled: true
+    vnetRouteAllEnabled: true    
+    // Non-required parameters
+    siteConfig: {
+      linuxFxVersion: 'DOCKER|${containerRegistry.outputs.loginServer}/enrichment:latest'
+      ipSecurityRestrictions: map(ipRules, ipRule => {
+        ipAddress: lastIndexOf(ipRule.?value, '/') == -1 ? '${ipRule.?value}/32' : ipRule.?value
+        action: 'Allow'
+      })
+      ipSecurityRestrictionsDefaultAction: 'Deny'
+      acrUseManagedIdentityCreds: true
+    }
+    appSettingsKeyValuePairs: {      
+      EMBEDDINGS_QUEUE                       : 'embeddings-queue'
+      LOG_LEVEL                              : 'DEBUG'
+      DEQUEUE_MESSAGE_BATCH_SIZE             : 1
+      AZURE_BLOB_STORAGE_ACCOUNT             : storage.outputs.name
+      AZURE_BLOB_STORAGE_CONTAINER           : storageContainerName
+      AZURE_BLOB_STORAGE_UPLOAD_CONTAINER    : 'upload'
+      AZURE_BLOB_STORAGE_ENDPOINT            : storage.outputs.primaryEndpoints.blob
+      AZURE_QUEUE_STORAGE_ENDPOINT           : storage.outputs.primaryEndpoints.queue
+      COSMOSDB_URL                           : cosmosDb.outputs.endpoint
+      COSMOSDB_LOG_DATABASE_NAME             : statusLogDatabaseName
+      COSMOSDB_LOG_CONTAINER_NAME            : statusLogContainerName
+      MAX_EMBEDDING_REQUEUE_COUNT            : 5
+      EMBEDDING_REQUEUE_BACKOFF              : 60
+      AZURE_OPENAI_SERVICE                   : !deployAzureOpenAi ? existingOpenAi.name : openAi.outputs.name
+      AZURE_OPENAI_ENDPOINT                  : !deployAzureOpenAi ? existingOpenAi.properties.endpoint : openAi.outputs.endpoint
+      AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME : embedding.deploymentName
+      AZURE_SEARCH_INDEX                     : searchIndexName
+      AZURE_SEARCH_SERVICE_ENDPOINT          : searchService.outputs.endpoint
+      AZURE_SEARCH_AUDIENCE                  : searchScope
+      TARGET_EMBEDDINGS_MODEL                : 'azure-openai_${embedding.deploymentName}'
+      EMBEDDING_VECTOR_SIZE                  : embedding.dimensions
+      AZURE_AI_CREDENTIAL_DOMAIN             : ''
+      AZURE_OPENAI_AUTHORITY_HOST            : ''
     }
   }
 }
@@ -798,6 +971,7 @@ module isolation 'network-isolation.bicep' = {
     // Need to check deploymentTarget due to https://github.com/Azure/bicep/issues/3990
     appServicePlanName: deploymentTarget == 'appservice' ? backendPlan.outputs.name : ''
     funcServicePlanName: functionServicePlan.outputs.name
+    enrichServicePlanName: enrichmentServicePlan.outputs.name
     usePrivateEndpoint: usePrivateEndpoint
     vnetAddressPrefix: vnetAddressPrefix
     subnetAppIntAddressPrefix: subnetAppIntAddressPrefix
@@ -815,6 +989,9 @@ module isolation 'network-isolation.bicep' = {
     subnetFuncIntName: useExistingVnet
       ? (!empty(existingFuncIntSubnetName) ? existingFuncIntSubnetName : subnetFuncIntName)
       : subnetFuncIntName
+    subnetEnrichIntName: useExistingVnet
+      ? (!empty(existingEnrichIntSubnetName) ? existingEnrichIntSubnetName : subnetEnrichIntName)
+      : subnetEnrichIntName
   }
 }
 
@@ -835,14 +1012,14 @@ var cognitiveServicesPrivateEndpointConnection = (usePrivateEndpoint)
       {
         groupId: 'account'
         dnsZoneName: 'privatelink.cognitiveservices.azure.com'
-        resourceIds: [speech.outputs.resourceId]
+        resourceIds: [documentIntelligence.outputs.resourceId, cognitiveServices.outputs.resourceId]
       }
     ]
   : []
 
 var websiteResourceIds = union(
   [],
-  empty(appServicePlanAseId) && deploymentTarget == 'appservice' ? [backend.outputs.id] : [],
+  empty(appServicePlanAseId) && deploymentTarget == 'appservice' ? [webapp.outputs.id] : [],
   empty(functionServiceAseId) ? [function.outputs.resourceId] : []
 )
 
