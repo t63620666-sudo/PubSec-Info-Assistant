@@ -15,6 +15,16 @@ param environmentName string
 @allowed(['appservice', 'containerapps'])
 param deploymentTarget string = 'appservice'
 
+param assignRoles bool = false
+@description('Id of the user or app to assign application roles')
+param principalId string = ''
+
+@description('Whether the deployment is running on GitHub Actions')
+param runningOnGh string = ''
+
+@description('Whether the deployment is running on Azure DevOps Pipeline')
+param runningOnAdo string = ''
+
 param appServicePlanAseId string = '' // Set in main.parameters.json
 param appServicePlanName string = '' // Set in main.parameters.json
 param backendServiceName string = '' // Set in main.parameters.json
@@ -77,7 +87,7 @@ param documentIntelligenceResourceGroupName string = '' // Set in main.parameter
 })
 param documentIntelligenceResourceGroupLocation string
 param documentIntelligenceSkuName string // Set in main.parameters.json
-
+param documentIntelligenceApiVersion string = '2023-07-31' // Set in main.parameters.json
 param cognitiveServiceName string = '' // Set in main.parameters.json
 param cognitiveServiceResourceGroupName string = '' // Set in main.parameters.json
 
@@ -222,6 +232,8 @@ param useApplicationInsights bool = false
 
 param tenantId string = tenant().tenantId
 param authTenantId string = ''
+@allowed(['AzureCloud', 'AzureUSGovernment'])
+param azureEnvironment string = 'AzureCloud' // Set in main.parameters.json
 
 // Used for the optional login and document level access control system
 param useAuthentication bool = false
@@ -248,6 +260,18 @@ param enableUngroundedChat bool = false
 param enableMathAssitant bool = true
 param enableTabularDataAssistant bool = true
 param maxCsvFileSize string = '20'
+param chunkTargetSize string = '750'
+param targetPages string = 'ALL'
+param maxSubmitRequeueCount string = '10'
+param pollQueueSubmitBackoff string = '60'
+param pdfSubmitQueueBackoff string = '60'
+param maxPollingRequeueCount string = '10'
+param submitRequeueHideSeconds string = '1200'
+param pollingBackoff string = '30'
+param maxReadAttempts string = '5'
+param targetTranslationLanguage string = 'en'
+param maxEnrichmentRequeueCount string = '10'
+param enrichmentBackoff string = '60'
 
 // Configure CORS for allowing different web apps to use the backend
 // For more information please see https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
@@ -273,16 +297,8 @@ var tags = {
 }
 
 var abbrs = loadJsonContent('./abbreviations.json')
-var azureRoles = loadJsonContent('./azure_roles.json')
+var roles = loadJsonContent('./azure_roles.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
-
-var selectedRoles = [
-  azureRoles.CognitiveServicesOpenAIUser
-  azureRoles.CognitiveServicesUser
-  azureRoles.StorageBlobDataOwner
-  azureRoles.StorageQueueDataContributor
-  azureRoles.SearchIndexDataContributor
-]
 
 var ipRules = reduce(
   filter(array(split(allowedIps, ';')), o => length(trim(o)) > 0),
@@ -603,7 +619,7 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.6.1' = {
             }
           }
         ]
-      }      
+      }
     ]
   }
 }
@@ -685,46 +701,46 @@ module backendPlan 'core/host/appserviceplan.bicep' = if (deploymentTarget == 'a
 
 // TODO: Confirm empty variables
 var appEnvVariables = {
-    AZURE_BLOB_STORAGE_ACCOUNT           : storage.outputs.name
-    AZURE_BLOB_STORAGE_ENDPOINT          : storage.outputs.primaryEndpoints.blob
-    AZURE_BLOB_STORAGE_CONTAINER         : 'content'
-    AZURE_BLOB_STORAGE_UPLOAD_CONTAINER  : 'upload'
-    AZURE_OPENAI_SERVICE                 : !deployAzureOpenAi ? existingOpenAi.name : openAi.outputs.name
-    AZURE_OPENAI_RESOURCE_GROUP          : !deployAzureOpenAi ? openAiResourceGroup : openAiResourceGroup.name
-    AZURE_OPENAI_ENDPOINT                : !deployAzureOpenAi ? existingOpenAi.properties.endpoint : openAi.outputs.endpoint
-    AZURE_OPENAI_AUTHORITY_HOST          : authenticationIssuerUri
-    AZURE_ARM_MANAGEMENT_API             : ''
-    AZURE_SEARCH_INDEX                   : searchIndexName
-    AZURE_SEARCH_SERVICE                 : searchService.outputs.name
-    AZURE_SEARCH_SERVICE_ENDPOINT        : searchService.outputs.endpoint
-    AZURE_SEARCH_AUDIENCE                : searchScope
-    AZURE_OPENAI_CHATGPT_DEPLOYMENT      : chatGpt.deploymentName
-    AZURE_OPENAI_CHATGPT_MODEL_NAME      : chatGpt.modelName
-    AZURE_OPENAI_CHATGPT_MODEL_VERSION   : chatGpt.deploymentVersion
-    USE_AZURE_OPENAI_EMBEDDINGS          : true
-    EMBEDDING_DEPLOYMENT_NAME            : embedding.deploymentName
-    AZURE_OPENAI_EMBEDDINGS_MODEL_NAME   : embedding.modelName
-    AZURE_OPENAI_EMBEDDINGS_MODEL_VERSION: embedding.deploymentVersion
-    COSMOSDB_URL                         : cosmosDb.outputs.endpoint
-    COSMOSDB_LOG_DATABASE_NAME           : statusLogDatabaseName
-    COSMOSDB_LOG_CONTAINER_NAME          : statusLogDatabaseName
-    QUERY_TERM_LANGUAGE                  : searchQueryLanguage
-    AZURE_SUBSCRIPTION_ID                : subscription().subscriptionId
-    CHAT_WARNING_BANNER_TEXT             : chatWarningBannerText
-    TARGET_EMBEDDINGS_MODEL              : 'azure-openai_${embedding.deploymentName}'
-    ENRICHMENT_APPSERVICE_URL            : enrichmentApp.outputs.defaultHostname
-    AZURE_AI_ENDPOINT                    : cognitiveServices.outputs.endpoint
-    AZURE_AI_LOCATION                    : cognitiveServices.outputs.location
-    APPLICATION_TITLE                    : empty(applicationTitle) ? 'Information Assistant, built with Azure OpenAI' : applicationTitle
-    USE_SEMANTIC_RERANKER                : useSemanticReranker
-    BING_SEARCH_ENDPOINT                 : ''
-    ENABLE_WEB_CHAT                      : enableWebChat
-    ENABLE_BING_SAFE_SEARCH              : enableBingSafeSearch
-    ENABLE_UNGROUNDED_CHAT               : enableUngroundedChat
-    ENABLE_MATH_ASSISTANT                : enableMathAssitant
-    ENABLE_TABULAR_DATA_ASSISTANT        : enableTabularDataAssistant
-    MAX_CSV_FILE_SIZE                    : maxCsvFileSize
-    AZURE_AI_CREDENTIAL_DOMAIN           : ''
+  AZURE_BLOB_STORAGE_ACCOUNT: storage.outputs.name
+  AZURE_BLOB_STORAGE_ENDPOINT: storage.outputs.primaryEndpoints.blob
+  AZURE_BLOB_STORAGE_CONTAINER: 'content'
+  AZURE_BLOB_STORAGE_UPLOAD_CONTAINER: 'upload'
+  AZURE_OPENAI_SERVICE: !deployAzureOpenAi ? existingOpenAi.name : openAi.outputs.name
+  AZURE_OPENAI_RESOURCE_GROUP: !deployAzureOpenAi ? openAiResourceGroup : openAiResourceGroup.name
+  AZURE_OPENAI_ENDPOINT: !deployAzureOpenAi ? existingOpenAi.properties.endpoint : openAi.outputs.endpoint
+  AZURE_OPENAI_AUTHORITY_HOST: azureEnvironment
+  AZURE_ARM_MANAGEMENT_API: 'https://${environment().resourceManager}'
+  AZURE_SEARCH_INDEX: searchIndexName
+  AZURE_SEARCH_SERVICE: searchService.outputs.name
+  AZURE_SEARCH_SERVICE_ENDPOINT: searchService.outputs.endpoint
+  AZURE_SEARCH_AUDIENCE: searchScope
+  AZURE_OPENAI_CHATGPT_DEPLOYMENT: chatGpt.deploymentName
+  AZURE_OPENAI_CHATGPT_MODEL_NAME: chatGpt.modelName
+  AZURE_OPENAI_CHATGPT_MODEL_VERSION: chatGpt.deploymentVersion
+  USE_AZURE_OPENAI_EMBEDDINGS: true
+  EMBEDDING_DEPLOYMENT_NAME: embedding.deploymentName
+  AZURE_OPENAI_EMBEDDINGS_MODEL_NAME: embedding.modelName
+  AZURE_OPENAI_EMBEDDINGS_MODEL_VERSION: embedding.deploymentVersion
+  COSMOSDB_URL: cosmosDb.outputs.endpoint
+  COSMOSDB_LOG_DATABASE_NAME: statusLogDatabaseName
+  COSMOSDB_LOG_CONTAINER_NAME: statusLogDatabaseName
+  QUERY_TERM_LANGUAGE: searchQueryLanguage
+  AZURE_SUBSCRIPTION_ID: subscription().subscriptionId
+  CHAT_WARNING_BANNER_TEXT: chatWarningBannerText
+  TARGET_EMBEDDINGS_MODEL: 'azure-openai_${embedding.deploymentName}'
+  ENRICHMENT_APPSERVICE_URL: enrichmentApp.outputs.defaultHostname
+  AZURE_AI_ENDPOINT: cognitiveServices.outputs.endpoint
+  AZURE_AI_LOCATION: cognitiveServices.outputs.location
+  APPLICATION_TITLE: empty(applicationTitle) ? 'Information Assistant, built with Azure OpenAI' : applicationTitle
+  USE_SEMANTIC_RERANKER: useSemanticReranker
+  BING_SEARCH_ENDPOINT: ''
+  ENABLE_WEB_CHAT: enableWebChat
+  ENABLE_BING_SAFE_SEARCH: enableBingSafeSearch
+  ENABLE_UNGROUNDED_CHAT: enableUngroundedChat
+  ENABLE_MATH_ASSISTANT: enableMathAssitant
+  ENABLE_TABULAR_DATA_ASSISTANT: enableTabularDataAssistant
+  MAX_CSV_FILE_SIZE: maxCsvFileSize
+  AZURE_AI_CREDENTIAL_DOMAIN: 'cognitiveservices.azure.com'
 }
 
 // App Service for the web application (Python Quart app with JS frontend)
@@ -841,46 +857,46 @@ module function 'br/public:avm/res/web/site:0.15.1' = {
       AzureFunctionsJobHost__logging__logLevel__default: 'Trace'
       FUNCTIONS_EXTENSION_VERSION: '~4'
       FUNCTIONS_WORKER_RUNTIME: 'python'
-      BLOB_STORAGE_ACCOUNT                        : storage.outputs.name
-      BLOB_STORAGE_ACCOUNT_ENDPOINT               : storage.outputs.primaryEndpoints.blob
-      BLOB_STORAGE_ACCOUNT_OUTPUT_CONTAINER_NAME  : storageContainerName
-      BLOB_STORAGE_ACCOUNT_UPLOAD_CONTAINER_NAME  : 'upload'      
-      BLOB_STORAGE_ACCOUNT_LOG_CONTAINER_NAME     : 'logs'
-      AZURE_QUEUE_STORAGE_ENDPOINT                : storage.outputs.primaryEndpoints.queue
-      CHUNK_TARGET_SIZE                           : chunkTargetSize
-      TARGET_PAGES                                : targetPages
-      FR_API_VERSION                              : formRecognizerApiVersion
-      AZURE_FORM_RECOGNIZER_ENDPOINT              : documentIntelligence.outputs.endpoint
-      COSMOSDB_URL                                : cosmosDb.outputs.endpoint
-      COSMOSDB_LOG_DATABASE_NAME                  : statusLogDatabaseName
-      COSMOSDB_LOG_CONTAINER_NAME                 : statusLogContainerName
-      PDF_SUBMIT_QUEUE                            : pdfSubmitQueue
-      PDF_POLLING_QUEUE                           : pdfPollingQueue
-      NON_PDF_SUBMIT_QUEUE                        : nonPdfSubmitQueue
-      MEDIA_SUBMIT_QUEUE                          : mediaSubmitQueue
-      TEXT_ENRICHMENT_QUEUE                       : textEnrichmentQueue
-      IMAGE_ENRICHMENT_QUEUE                      : imageEnrichmentQueue
-      MAX_SECONDS_HIDE_ON_UPLOAD                  : functionMaxSecondsHideOnUpload
-      MAX_SUBMIT_REQUEUE_COUNT                    : maxSubmitRequeueCount
-      POLL_QUEUE_SUBMIT_BACKOFF                   : pollQueueSubmitBackoff
-      PDF_SUBMIT_QUEUE_BACKOFF                    : pdfSubmitQueueBackoff
-      MAX_POLLING_REQUEUE_COUNT                   : maxPollingRequeueCount
-      SUBMIT_REQUEUE_HIDE_SECONDS                 : submitRequeueHideSeconds
-      POLLING_BACKOFF                             : pollingBackoff
-      MAX_READ_ATTEMPTS                           : maxReadAttempts
-      AZURE_AI_KEY                                : ''
-      AZURE_AI_ENDPOINT                           : enrichmentEndpoint
-      ENRICHMENT_NAME                             : enrichmentName
-      AZURE_AI_LOCATION                           : enrichmentLocation
-      TARGET_TRANSLATION_LANGUAGE                 : targetTranslationLanguage
-      MAX_ENRICHMENT_REQUEUE_COUNT                : maxEnrichmentRequeueCount
-      ENRICHMENT_BACKOFF                          : enrichmentBackoff
-      EMBEDDINGS_QUEUE                            : EMBEDDINGS_QUEUE
-      AZURE_SEARCH_SERVICE_ENDPOINT               : azureSearchServiceEndpoint
-      AZURE_SEARCH_INDEX                          : azureSearchIndex
-      AZURE_AI_CREDENTIAL_DOMAIN                  : azure_ai_credential_domain
-      AZURE_OPENAI_AUTHORITY_HOST                 : azure_environment
-      LOCAL_DEBUG                                 : string(false)
+      BLOB_STORAGE_ACCOUNT: storage.outputs.name
+      BLOB_STORAGE_ACCOUNT_ENDPOINT: storage.outputs.primaryEndpoints.blob
+      BLOB_STORAGE_ACCOUNT_OUTPUT_CONTAINER_NAME: storageContainerName
+      BLOB_STORAGE_ACCOUNT_UPLOAD_CONTAINER_NAME: 'upload'
+      BLOB_STORAGE_ACCOUNT_LOG_CONTAINER_NAME: 'logs'
+      AZURE_QUEUE_STORAGE_ENDPOINT: storage.outputs.primaryEndpoints.queue
+      CHUNK_TARGET_SIZE: chunkTargetSize
+      TARGET_PAGES: targetPages
+      FR_API_VERSION: documentIntelligenceApiVersion
+      AZURE_FORM_RECOGNIZER_ENDPOINT: documentIntelligence.outputs.endpoint
+      COSMOSDB_URL: cosmosDb.outputs.endpoint
+      COSMOSDB_LOG_DATABASE_NAME: statusLogDatabaseName
+      COSMOSDB_LOG_CONTAINER_NAME: statusLogContainerName
+      PDF_SUBMIT_QUEUE: 'pdf-submit-queue'
+      PDF_POLLING_QUEUE: 'pdf-polling-queue'
+      NON_PDF_SUBMIT_QUEUE: 'non-pdf-submit-queue'
+      MEDIA_SUBMIT_QUEUE: 'media-submit-queue'
+      TEXT_ENRICHMENT_QUEUE: 'text-enrichment-queue'
+      IMAGE_ENRICHMENT_QUEUE: 'image-enrichment-queue'
+      MAX_SECONDS_HIDE_ON_UPLOAD: functionMaxSecondsHideOnUpload
+      MAX_SUBMIT_REQUEUE_COUNT: maxSubmitRequeueCount
+      POLL_QUEUE_SUBMIT_BACKOFF: pollQueueSubmitBackoff
+      PDF_SUBMIT_QUEUE_BACKOFF: pdfSubmitQueueBackoff
+      MAX_POLLING_REQUEUE_COUNT: maxPollingRequeueCount
+      SUBMIT_REQUEUE_HIDE_SECONDS: submitRequeueHideSeconds
+      POLLING_BACKOFF: pollingBackoff
+      MAX_READ_ATTEMPTS: maxReadAttempts
+      AZURE_AI_KEY: ''
+      AZURE_AI_ENDPOINT: cognitiveServices.outputs.endpoint
+      ENRICHMENT_NAME: cognitiveServices.outputs.name
+      AZURE_AI_LOCATION: cognitiveServices.outputs.location
+      TARGET_TRANSLATION_LANGUAGE: targetTranslationLanguage
+      MAX_ENRICHMENT_REQUEUE_COUNT: maxEnrichmentRequeueCount
+      ENRICHMENT_BACKOFF: enrichmentBackoff
+      EMBEDDINGS_QUEUE: 'embeddings-queue'
+      AZURE_SEARCH_SERVICE_ENDPOINT: searchService.outputs.endpoint
+      AZURE_SEARCH_INDEX: searchIndexName
+      AZURE_AI_CREDENTIAL_DOMAIN: 'cognitiveservices.azure.com'
+      AZURE_OPENAI_AUTHORITY_HOST: azureEnvironment
+      LOCAL_DEBUG: string(false)
     }
   }
 }
@@ -889,7 +905,9 @@ module enrichmentServicePlan 'core/host/appserviceplan.bicep' = {
   name: 'enrichmentserviceplan'
   scope: mainResourceGroup
   params: {
-    name: !empty(enrichmentServicePlanName) ? enrichmentServicePlanName : '${abbrs.webServerFarms}enrich-${resourceToken}'
+    name: !empty(enrichmentServicePlanName)
+      ? enrichmentServicePlanName
+      : '${abbrs.webServerFarms}enrich-${resourceToken}'
     location: location
     tags: tags
     aseId: enrichmentServiceAseId
@@ -919,7 +937,7 @@ module enrichmentApp 'br/public:avm/res/web/site:0.15.1' = {
     virtualNetworkSubnetId: empty(enrichmentServiceAseId) ? isolation.outputs.enrichIntSubnetId : null
     vnetImagePullEnabled: true
     vnetContentShareEnabled: true
-    vnetRouteAllEnabled: true    
+    vnetRouteAllEnabled: true
     // Non-required parameters
     siteConfig: {
       linuxFxVersion: 'DOCKER|${containerRegistry.outputs.loginServer}/enrichment:latest'
@@ -930,30 +948,30 @@ module enrichmentApp 'br/public:avm/res/web/site:0.15.1' = {
       ipSecurityRestrictionsDefaultAction: 'Deny'
       acrUseManagedIdentityCreds: true
     }
-    appSettingsKeyValuePairs: {      
-      EMBEDDINGS_QUEUE                       : 'embeddings-queue'
-      LOG_LEVEL                              : 'DEBUG'
-      DEQUEUE_MESSAGE_BATCH_SIZE             : 1
-      AZURE_BLOB_STORAGE_ACCOUNT             : storage.outputs.name
-      AZURE_BLOB_STORAGE_CONTAINER           : storageContainerName
-      AZURE_BLOB_STORAGE_UPLOAD_CONTAINER    : 'upload'
-      AZURE_BLOB_STORAGE_ENDPOINT            : storage.outputs.primaryEndpoints.blob
-      AZURE_QUEUE_STORAGE_ENDPOINT           : storage.outputs.primaryEndpoints.queue
-      COSMOSDB_URL                           : cosmosDb.outputs.endpoint
-      COSMOSDB_LOG_DATABASE_NAME             : statusLogDatabaseName
-      COSMOSDB_LOG_CONTAINER_NAME            : statusLogContainerName
-      MAX_EMBEDDING_REQUEUE_COUNT            : 5
-      EMBEDDING_REQUEUE_BACKOFF              : 60
-      AZURE_OPENAI_SERVICE                   : !deployAzureOpenAi ? existingOpenAi.name : openAi.outputs.name
-      AZURE_OPENAI_ENDPOINT                  : !deployAzureOpenAi ? existingOpenAi.properties.endpoint : openAi.outputs.endpoint
-      AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME : embedding.deploymentName
-      AZURE_SEARCH_INDEX                     : searchIndexName
-      AZURE_SEARCH_SERVICE_ENDPOINT          : searchService.outputs.endpoint
-      AZURE_SEARCH_AUDIENCE                  : searchScope
-      TARGET_EMBEDDINGS_MODEL                : 'azure-openai_${embedding.deploymentName}'
-      EMBEDDING_VECTOR_SIZE                  : embedding.dimensions
-      AZURE_AI_CREDENTIAL_DOMAIN             : ''
-      AZURE_OPENAI_AUTHORITY_HOST            : ''
+    appSettingsKeyValuePairs: {
+      EMBEDDINGS_QUEUE: 'embeddings-queue'
+      LOG_LEVEL: 'DEBUG'
+      DEQUEUE_MESSAGE_BATCH_SIZE: 1
+      AZURE_BLOB_STORAGE_ACCOUNT: storage.outputs.name
+      AZURE_BLOB_STORAGE_CONTAINER: storageContainerName
+      AZURE_BLOB_STORAGE_UPLOAD_CONTAINER: 'upload'
+      AZURE_BLOB_STORAGE_ENDPOINT: storage.outputs.primaryEndpoints.blob
+      AZURE_QUEUE_STORAGE_ENDPOINT: storage.outputs.primaryEndpoints.queue
+      COSMOSDB_URL: cosmosDb.outputs.endpoint
+      COSMOSDB_LOG_DATABASE_NAME: statusLogDatabaseName
+      COSMOSDB_LOG_CONTAINER_NAME: statusLogContainerName
+      MAX_EMBEDDING_REQUEUE_COUNT: 5
+      EMBEDDING_REQUEUE_BACKOFF: 60
+      AZURE_OPENAI_SERVICE: !deployAzureOpenAi ? existingOpenAi.name : openAi.outputs.name
+      AZURE_OPENAI_ENDPOINT: !deployAzureOpenAi ? existingOpenAi.properties.endpoint : openAi.outputs.endpoint
+      AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME: embedding.deploymentName
+      AZURE_SEARCH_INDEX: searchIndexName
+      AZURE_SEARCH_SERVICE_ENDPOINT: searchService.outputs.endpoint
+      AZURE_SEARCH_AUDIENCE: searchScope
+      TARGET_EMBEDDINGS_MODEL: 'azure-openai_${embedding.deploymentName}'
+      EMBEDDING_VECTOR_SIZE: embedding.dimensions
+      AZURE_AI_CREDENTIAL_DOMAIN: 'cognitiveservices.azure.com'
+      AZURE_OPENAI_AUTHORITY_HOST: azureEnvironment
     }
   }
 }
@@ -1104,3 +1122,542 @@ module privateEndpoints 'private-endpoints.bicep' = if (usePrivateEndpoint) {
     skipPrivateDnsZones: skipPrivateDnsZones
   }
 }
+
+// USER ROLES
+var principalType = empty(runningOnGh) && empty(runningOnAdo) ? 'User' : 'ServicePrincipal'
+
+var firstId = !deployAzureOpenAi && !empty(existingOpenAi.identity.?userAssignedIdentities)
+  ? first(objectKeys(existingOpenAi.identity.userAssignedIdentities))
+  : ''
+var existingOpenAiUserIdentityPrincipalId = !deployAzureOpenAi && !empty(firstId)
+  ? existingOpenAi.identity.userAssignedIdentities[firstId!].principalId
+  : ''
+var existingOpenAiManagedIdentityPrincipalId = (!deployAzureOpenAi && !empty(existingOpenAi.identity.?principalId)
+  ? existingOpenAi.identity.principalId
+  : existingOpenAiUserIdentityPrincipalId)
+
+module openAiRoleUser 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles && !empty(principalId)) {
+  scope: openAiResourceGroup
+  name: 'openai-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: roles.CognitiveServicesOpenAIUser
+    principalType: principalType
+  }
+}
+
+// For both document intelligence and computer vision
+module cognitiveServicesRoleUser 'core/security/role.bicep' = if (assignRoles && !empty(principalId)) {
+  scope: mainResourceGroup
+  name: 'cognitiveservices-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: roles.CognitiveServicesUser
+    principalType: principalType
+  }
+}
+
+module storageRoleUser 'core/security/role.bicep' = if (assignRoles && !empty(principalId)) {
+  scope: storageResourceGroup
+  name: 'storage-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: roles.StorageBlobDataReader
+    principalType: principalType
+  }
+}
+
+module storageContribRoleUser 'core/security/role.bicep' = if (assignRoles && !empty(principalId)) {
+  scope: storageResourceGroup
+  name: 'storage-contrib-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
+    principalType: principalType
+  }
+}
+
+module storageOwnerRoleUser 'core/security/role.bicep' = if (assignRoles && !empty(principalId)) {
+  scope: storageResourceGroup
+  name: 'storage-owner-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: roles.StorageBlobDataOwner
+    principalType: principalType
+  }
+}
+
+module searchRoleUser 'core/security/role.bicep' = if (assignRoles && !empty(principalId)) {
+  scope: searchServiceResourceGroup
+  name: 'search-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: roles.SearchIndexDataReader
+    principalType: principalType
+  }
+}
+
+module searchContribRoleUser 'core/security/role.bicep' = if (assignRoles && !empty(principalId)) {
+  scope: searchServiceResourceGroup
+  name: 'search-contrib-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: roles.SearchIndexDataContributor
+    principalType: principalType
+  }
+}
+
+module searchSvcContribRoleUser 'core/security/role.bicep' = if (assignRoles && !empty(principalId)) {
+  scope: searchServiceResourceGroup
+  name: 'search-svccontrib-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: roles.SearchServiceContributor
+    principalType: principalType
+  }
+}
+
+module cosmosDbAccountContribRoleUser 'core/security/role.bicep' = if (assignRoles && !empty(principalId)) {
+  scope: cosmosDbResourceGroup
+  name: 'cosmosdb-account-contrib-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: roles.DocumentDBAccountContributor
+    principalType: principalType
+  }
+}
+
+// RBAC for Cosmos DB
+// https://learn.microsoft.com/azure/cosmos-db/nosql/security/how-to-grant-data-plane-role-based-access
+module cosmosDbDataContribRoleUser 'core/security/documentdb-sql-role.bicep' = if (assignRoles && !empty(principalId)) {
+  scope: cosmosDbResourceGroup
+  name: 'cosmosdb-data-contrib-role-user'
+  params: {
+    databaseAccountName: cosmosDb.outputs.name
+    principalId: principalId
+    // Cosmos DB Built-in Data Contributor role
+    roleDefinitionId: '/${subscription().id}/resourceGroups/${cosmosDb.outputs.resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDb.outputs.name}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+  }
+}
+
+module queueDataReaderRoleUser 'core/security/role.bicep' = if (assignRoles && !empty(principalId)) {
+  scope: cosmosDbResourceGroup
+  name: 'queue-data-reader-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: roles.StorageQueueDataReader
+    principalType: principalType
+  }
+}
+
+module queueDataContribRoleUser 'core/security/role.bicep' = if (assignRoles && !empty(principalId)) {
+  scope: cosmosDbResourceGroup
+  name: 'queue-data-contrib-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: roles.StorageQueueDataContributor
+    principalType: principalType
+  }
+}
+
+module queueDataMessageProcRoleUser 'core/security/role.bicep' = if (assignRoles && !empty(principalId)) {
+  scope: cosmosDbResourceGroup
+  name: 'queue-data-message-proc-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: roles.StorageQueueDataMessageProcessor
+    principalType: principalType
+  }
+}
+
+module queueDataMessageSenderRoleUser 'core/security/role.bicep' = if (assignRoles && !empty(principalId)) {
+  scope: cosmosDbResourceGroup
+  name: 'queue-data-message-sender-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: roles.StorageQueueDataMessageSender
+    principalType: principalType
+  }
+}
+
+// SYSTEM IDENTITIES
+module openAiRoleBackend 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: openAiResourceGroup
+  name: 'openai-role-backend'
+  params: {
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    roleDefinitionId: roles.CognitiveServicesOpenAIUser
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module openAiRoleFunction 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: openAiResourceGroup
+  name: 'openai-role-function'
+  params: {
+    principalId: function.outputs.?systemAssignedMIPrincipalId
+    roleDefinitionId: roles.CognitiveServicesOpenAIUser
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module openAiRoleSearchService 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: openAiResourceGroup
+  name: 'openai-role-searchservice'
+  params: {
+    principalId: searchService.outputs.principalId
+    roleDefinitionId: roles.CognitiveServicesOpenAIUser
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageRoleBackend 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-role-backend'
+  params: {
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    roleDefinitionId: roles.StorageBlobDataReader
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageContribRoleBackend 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-contrib-role-backend'
+  params: {
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageContribRoleDiag 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-contrib-role-diag'
+  params: {
+    principalId: '47a8880e-8e60-4153-9e25-fa98482bae5d'
+    roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-blob-reader-role-function'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageBlobDataReader
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageContribRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-blob-contrib-role-function'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageBlobDataContributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageAccountContributorRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-acc-contrib-role-function'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageAccountContributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageQueueContributorRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-queue-contrib-role-function'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageQueueDataContributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageQueueDataReaderRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-queue-data-reader-role-function'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageQueueDataReader
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageQueueMessageProcRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-queue-message-proc-role-function'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageQueueDataMessageProcessor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageQueueMessageSenderRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-queue-message-sender-role-function'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageQueueDataMessageSender
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageQueueMessageSenderRoleBackend 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-queue-message-sender-role-backend'
+  params: {
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    roleDefinitionId: roles.StorageQueueDataMessageSender
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module containerRegistryRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+  scope: mainResourceGroup
+  name: 'container-registry-role-function'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.AcrPull
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module containerRegistryRoleBackend 'core/security/role.bicep' = if (assignRoles) {
+  scope: mainResourceGroup
+  name: 'container-registry-role-backend'
+  params: {
+    principalId: webapp.outputs.identityPrincipalId
+    roleDefinitionId: roles.AcrPull
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageOwnerRoleBackend 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-owner-role-backend'
+  params: {
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    roleDefinitionId: roles.StorageBlobDataOwner
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageOwnerRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-owner-role-function'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageBlobDataOwner
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageRoleSearchService 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'storage-role-searchservice'
+  params: {
+    principalId: searchService.outputs.principalId
+    roleDefinitionId: roles.StorageBlobDataReader
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Used to issue search queries
+// https://learn.microsoft.com/azure/search/search-security-rbac
+module searchRoleBackend 'core/security/role.bicep' = if (assignRoles) {
+  scope: searchServiceResourceGroup
+  name: 'search-role-backend'
+  params: {
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    roleDefinitionId: roles.SearchIndexDataReader
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module searchRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+  scope: searchServiceResourceGroup
+  name: 'search-role-function'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.SearchIndexDataReader
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module searchSvcContribRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+  scope: searchServiceResourceGroup
+  name: 'search-svccontrib-role-function'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.SearchServiceContributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// RBAC for Cosmos DB
+// https://learn.microsoft.com/azure/cosmos-db/nosql/security/how-to-grant-data-plane-role-based-access
+module cosmosDbRoleBackend 'core/security/documentdb-sql-role.bicep' = if (assignRoles) {
+  scope: cosmosDbResourceGroup
+  name: 'cosmosdb-role-backend'
+  params: {
+    databaseAccountName: cosmosDb.outputs.name
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    // Cosmos DB Built-in Data Contributor role
+    roleDefinitionId: '/${subscription().id}/resourceGroups/${cosmosDb.outputs.resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDb.outputs.name}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+  }
+}
+
+module cosmosDbRoleFunction 'core/security/documentdb-sql-role.bicep' = if (assignRoles) {
+  scope: cosmosDbResourceGroup
+  name: 'cosmosdb-role-function'
+  params: {
+    databaseAccountName: cosmosDb.outputs.name
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    // Cosmos DB Built-in Data Contributor role
+    roleDefinitionId: '/${subscription().id}/resourceGroups/${cosmosDb.outputs.resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDb.outputs.name}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+  }
+}
+
+module cosmosDbRoleOpenAi 'core/security/documentdb-sql-role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: cosmosDbResourceGroup
+  name: 'cosmosdb-role-openai'
+  params: {
+    databaseAccountName: cosmosDb.outputs.name
+    principalId: deployAzureOpenAi
+      ? openAi.outputs.systemAssignedMIPrincipalId
+      : existingOpenAiManagedIdentityPrincipalId
+    // Cosmos DB Built-in Data Contributor role
+    roleDefinitionId: '/${subscription().id}/resourceGroups/${cosmosDb.outputs.resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDb.outputs.name}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+  }
+}
+
+module cosmosDbReaderRoleSearch 'core/security/documentdb-sql-role.bicep' = if (assignRoles) {
+  scope: cosmosDbResourceGroup
+  name: 'cosmosdb-reader-role-search'
+  params: {
+    databaseAccountName: cosmosDb.outputs.name
+    principalId: searchService.outputs.principalId
+    // Cosmos DB Built-in Data Reader role
+    roleDefinitionId: '/${subscription().id}/resourceGroups/${cosmosDb.outputs.resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDb.outputs.name}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000001'
+  }
+}
+
+module cosmosDbRoleSearch 'core/security/documentdb-sql-role.bicep' = if (assignRoles) {
+  scope: cosmosDbResourceGroup
+  name: 'cosmosdb-role-search'
+  params: {
+    databaseAccountName: cosmosDb.outputs.name
+    principalId: searchService.outputs.principalId
+    // Cosmos DB Built-in Data Contributor role
+    roleDefinitionId: '/${subscription().id}/resourceGroups/${cosmosDb.outputs.resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDb.outputs.name}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+  }
+}
+
+module cosmosAccountReaderRoleSearch 'core/security/role.bicep' = if (assignRoles) {
+  scope: searchServiceResourceGroup
+  name: 'cosmos-acc-reader-role-search'
+  params: {
+    principalId: searchService.outputs.principalId
+    roleDefinitionId: roles.CosmosDBAccountReaderRole
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Used to read index definitions (required when using authentication)
+// https://learn.microsoft.com/azure/search/search-security-rbac
+module searchReaderRoleBackend 'core/security/role.bicep' = if (useAuthentication && assignRoles) {
+  scope: searchServiceResourceGroup
+  name: 'search-reader-role-backend'
+  params: {
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    roleDefinitionId: roles.Reader
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Used to add/remove documents from index (required for user upload feature)
+module searchContribRoleBackend 'core/security/role.bicep' = if (assignRoles) {
+  scope: searchServiceResourceGroup
+  name: 'search-contrib-role-backend'
+  params: {
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    roleDefinitionId: roles.SearchIndexDataContributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module searchContribRoleOpenAi 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: searchServiceResourceGroup
+  name: 'search-contrib-role-openai'
+  params: {
+    principalId: deployAzureOpenAi
+      ? openAi.outputs.systemAssignedMIPrincipalId
+      : existingOpenAiManagedIdentityPrincipalId
+    roleDefinitionId: roles.SearchIndexDataContributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+output AZURE_LOCATION string = location
+output AZURE_TENANT_ID string = tenantId
+output AZURE_AUTH_TENANT_ID string = authTenantId
+output AZURE_RESOURCE_GROUP string = mainResourceGroup.name
+
+// Shared by all OpenAI deployments
+output OPENAI_HOST string = openAiHost
+output AZURE_OPENAI_EMB_MODEL_NAME string = embedding.modelName
+output AZURE_OPENAI_CHATGPT_MODEL string = chatGpt.modelName
+
+// Specific to Azure OpenAI
+output AZURE_OPENAI_SERVICE string = isAzureOpenAiHost
+  ? (deployAzureOpenAi ? openAi.outputs.name : existingOpenAi.name)
+  : ''
+output AZURE_OPENAI_API_VERSION string = isAzureOpenAiHost ? azureOpenAiApiVersion : ''
+output AZURE_OPENAI_RESOURCE_GROUP string = isAzureOpenAiHost ? openAiResourceGroup.name : ''
+output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = isAzureOpenAiHost ? chatGpt.deploymentName : ''
+output AZURE_OPENAI_EMB_DEPLOYMENT string = isAzureOpenAiHost ? embedding.deploymentName : ''
+
+output AZURE_SEARCH_INDEX string = searchIndexName
+output AZURE_SEARCH_INDEXER string = searchIndexerName
+output AZURE_SEARCH_SERVICE string = searchService.outputs.name
+output AZURE_SEARCH_SERVICE_ENDPOINT string = searchService.outputs.endpoint
+output AZURE_SEARCH_SERVICE_RESOURCE_GROUP string = searchServiceResourceGroup.name
+output AZURE_SEARCH_SEMANTIC_RANKER string = actualSearchServiceSemanticRankerLevel
+output AZURE_SEARCH_SERVICE_ASSIGNED_USERID string = searchService.outputs.principalId
+
+output AZURE_COSMOSDB_ACCOUNT string = cosmosDb.outputs.name
+output AZURE_COSMOSDB_RESOURCE_GROUP string = cosmosDbResourceGroup.name
+output AZURE_CHAT_HISTORY_DATABASE string = chatHistoryDatabaseName
+output AZURE_CHAT_HISTORY_CONTAINER string = chatHistoryContainerName
+output AZURE_CHAT_HISTORY_VERSION string = chatHistoryVersion
+output AZURE_STATUS_LOG_DATABASE string = statusLogDatabaseName
+output AZURE_STATUS_LOG_CONTAINER string = statusLogContainerName
+output AZURE_STATUS_LOG_VERSION string = statusLogVersion
+output AZURE_VIDEO_ANALYSIS_DATABASE string = videoMetadataDatabaseName
+output AZURE_VIDEO_ANALYSIS_CONTAINER string = videoMetadataContainerName
+output AZURE_VIDEO_PROCESSING_DATABASE string = videoProcessingDatabaseName
+output AZURE_VIDEO_PROCESSING_CONTAINER string = videoProcessingContainerName
+output AZURE_VIDEO_ANALYSIS_VERSION string = videoAnalysisVersion
+
+output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
+output AZURE_STORAGE_CONTAINER string = storageContainerName
+output AZURE_STORAGE_RESOURCE_GROUP string = storageResourceGroup.name
+
+output AZURE_USE_AUTHENTICATION bool = useAuthentication
+output AZURE_USE_USER_UPLOAD bool = useUserUpload
+
+output BACKEND_URI string = deploymentTarget == 'appservice' ? webapp.outputs.uri : ''
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerRegistry.outputs.loginServer
+output AZURE_CONTAINER_REGISTRY_NAME string = containerRegistry.outputs.name
+
+output AZURE_WEBAPP_SERVICE_NAME string = deploymentTarget == 'appservice' ? webapp.outputs.name : ''
+output AZURE_FUNCTION_SERVICE_NAME string = function.outputs.name
