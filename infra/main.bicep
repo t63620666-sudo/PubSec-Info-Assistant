@@ -44,7 +44,6 @@ param enrichmentServicePlanName string = '' // Set in main.parameters.json
 param enrichmentServiceSkuName string // Set in main.parameters.json
 param enrichmentServiceSkuTier string // Set in main.parameters.json
 
-param applicationInsightsDashboardName string = '' // Set in main.parameters.json
 param applicationInsightsName string = '' // Set in main.parameters.json
 param logAnalyticsName string = '' // Set in main.parameters.json
 
@@ -112,7 +111,6 @@ param searchServiceSkuName string // Set in main.parameters.json
 param searchIndexName string // Set in main.parameters.json
 param searchIndexerName string // Set in main.parameters.json
 param searchQueryLanguage string // Set in main.parameters.json
-param searchQuerySpeller string // Set in main.parameters.json
 param searchServiceSemanticRankerLevel string // Set in main.parameters.json
 param searchScope string = ''
 var actualSearchServiceSemanticRankerLevel = (searchServiceSkuName == 'free')
@@ -124,10 +122,7 @@ param openAiHost string // Set in main.parameters.json
 param isAzureOpenAiHost bool = startsWith(openAiHost, 'azure')
 param deployAzureOpenAi bool = true
 param deployAzureOpenModels bool = true
-param azureOpenAiCustomUrl string = ''
 param azureOpenAiApiVersion string = ''
-@secure()
-param azureOpenAiApiKey string = ''
 param azureOpenAiDisableKeys bool = false
 param openAiServiceName string = ''
 param openAiResourceGroupName string = ''
@@ -152,9 +147,6 @@ param openAiResourceGroupName string = ''
 })
 param openAiLocation string
 param openAiSkuName string = 'S0'
-@secure()
-param openAiApiKey string = ''
-param openAiApiOrganization string = ''
 
 param chatGptModelName string = ''
 param chatGptDeploymentName string = ''
@@ -238,11 +230,9 @@ param azureEnvironment string = 'AzureCloud' // Set in main.parameters.json
 // Used for the optional login and document level access control system
 param useAuthentication bool = false
 param useUserUpload bool = false
-param enforceAccessControl bool = false
 // Force using MSAL app authentication instead of built-in App Service authentication
 // https://learn.microsoft.com/azure/app-service/overview-authentication-authorization
 param disableAppServicesAuthentication bool = false
-param enableGlobalDocuments bool = false
 param enableUnauthenticatedAccess bool = false
 param serverAppId string = ''
 @secure()
@@ -995,6 +985,7 @@ module isolation 'network-isolation.bicep' = {
     subnetAppIntAddressPrefix: subnetAppIntAddressPrefix
     subnetBackendAddressPrefix: subnetBackendAddressPrefix
     subnetFuncIntAddressPrefix: subnetFuncIntAddressPrefix
+    subnetEnrichIntAddressPrefix: subnetEnrichIntAddressPrefix
     useExistingVnet: useExistingVnet
     existingVnetSubscriptionId: existingVnetSubscriptionId
     existingVnetResourceGroupName: existingVnetResourceGroupName
