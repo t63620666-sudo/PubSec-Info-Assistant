@@ -5,7 +5,12 @@ param buildNumber string = '1.0.0'
 
 param createResourceGroup bool = true
 param resourceGroupName string = ''
-param location string = 'eastus'
+@metadata({
+  azd: {
+    type: 'location'
+  }
+})
+param location string
 
 @minLength(1)
 @maxLength(64)
@@ -73,7 +78,7 @@ param documentIntelligenceResourceGroupName string = '' // Set in main.parameter
 // Limited regions for new version:
 // https://learn.microsoft.com/azure/ai-services/document-intelligence/concept-layout
 @description('Location for the Document Intelligence resource group')
-@allowed(['eastus', 'westus2', 'westeurope'])
+@allowed(['eastus', 'westus2', 'westeurope', 'canadaeast'])
 @metadata({
   azd: {
     type: 'location'
@@ -88,7 +93,7 @@ param cognitiveServiceResourceGroupName string = '' // Set in main.parameters.js
 // Limited regions for new version:
 // https://learn.microsoft.com/azure/ai-services/document-intelligence/concept-layout
 @description('Location for the Document Intelligence resource group')
-@allowed(['eastus', 'westus2', 'westeurope'])
+@allowed(['eastus', 'westus2', 'westeurope', 'canadaeast'])
 @metadata({
   azd: {
     type: 'location'
