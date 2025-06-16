@@ -5,7 +5,7 @@ FROM mcr.microsoft.com/devcontainers/python:3.12
 WORKDIR /home/site/wwwroot
 
 # Copy the package.json
-COPY app/backend /home/site/wwwroot
+COPY . /home/site/wwwroot
 
 # Install the dependencies
 RUN pip install -r /home/site/wwwroot/requirements.txt

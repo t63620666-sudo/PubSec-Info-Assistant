@@ -4,7 +4,7 @@ FROM mcr.microsoft.com/devcontainers/python:3.12
 # Set the working directory
 WORKDIR /app
 
-COPY app/enrichment /app
+COPY . /app
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
