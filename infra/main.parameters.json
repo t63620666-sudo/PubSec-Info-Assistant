@@ -276,7 +276,7 @@
       "value": "${AZURE_OPENAI_SERVICE}"
     },
     "openAiSkuName": {
-      "value": "S0"
+      "value": "${AZURE_OPENAI_SERVICE_SKU=S0}"
     },
     "pdfSubmitQueueBackoff": {
       "value": "${PDF_SUBMIT_QUEUE_BACKOFF=60}"

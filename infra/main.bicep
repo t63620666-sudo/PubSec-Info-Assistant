@@ -461,7 +461,7 @@ module openAi 'br/public:avm/res/cognitive-services/account:0.7.2' = if (isAzure
   name: 'openai'
   scope: openAiResourceGroup
   params: {
-    name: !empty(openAiServiceName) ? openAiServiceName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
+    name: !empty(openAiServiceName) ? openAiServiceName : '${abbrs.cognitiveServicesAccounts}aoai-${resourceToken}'
     location: openAiLocation
     tags: tags
     kind: 'OpenAI'
@@ -470,7 +470,7 @@ module openAi 'br/public:avm/res/cognitive-services/account:0.7.2' = if (isAzure
     }
     customSubDomainName: !empty(openAiServiceName)
       ? openAiServiceName
-      : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
+      : '${abbrs.cognitiveServicesAccounts}aoai-${resourceToken}'
     publicNetworkAccess: !empty(ipRules) ? 'Enabled' : publicNetworkAccess
     networkAcls: {
       defaultAction: 'Deny'
@@ -501,7 +501,7 @@ module searchService 'core/search/search-services.bicep' = {
   name: 'search-service'
   scope: searchServiceResourceGroup
   params: {
-    name: !empty(searchServiceName) ? searchServiceName : 'gptkb-${resourceToken}'
+    name: !empty(searchServiceName) ? searchServiceName : '${abbrs.searchSearchServices}${resourceToken}'
     location: !empty(searchServiceLocation) ? searchServiceLocation : location
     tags: tags
     disableLocalAuth: true
@@ -660,9 +660,9 @@ module cognitiveServices 'br/public:avm/res/cognitive-services/account:0.7.2' = 
   params: {
     name: !empty(cognitiveServiceName) ? cognitiveServiceName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
     kind: 'CognitiveServices'
-    customSubDomainName: !empty(documentIntelligenceServiceName)
-      ? documentIntelligenceServiceName
-      : '${abbrs.cognitiveServicesDocumentIntelligence}${resourceToken}'
+    customSubDomainName: !empty(cognitiveServiceName)
+      ? cognitiveServiceName
+      : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
     publicNetworkAccess: !empty(ipRules) ? 'Enabled' : publicNetworkAccess
     networkAcls: {
       defaultAction: 'Deny'
