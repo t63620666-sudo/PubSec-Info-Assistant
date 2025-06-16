@@ -1,0 +1,429 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "allowedIps": {
+      "value": "${AZURE_ALLOWED_IPS}"
+    },
+    "allowedOrigin": {
+      "value": "${ALLOWED_ORIGIN}"
+    },
+    "applicationInsightsName": {
+      "value": "${AZURE_APPLICATION_INSIGHTS}"
+    },
+    "applicationTitle": {
+      "value": "${APPLICATION_TITLE=PubSec Info Assistant}"
+    },
+    "appServicePlanAseId": {
+      "value": "${AZURE_APP_SERVICE_PLAN_ASE_ID}"
+    },
+    "appServicePlanName": {
+      "value": "${AZURE_APP_SERVICE_PLAN}"
+    },
+    "appServiceSkuName": {
+      "value": "${AZURE_APP_SERVICE_SKU=B1}"
+    },
+    "appServiceSkuTier": {
+      "value": "${AZURE_APP_SERVICE_SKU_TIER=Basic}"
+    },
+    "assignRoles": {
+      "value": "${ASSIGN_ROLES=true}"
+    },
+    "authTenantId": {
+      "value": "${AZURE_AUTH_TENANT_ID}"
+    },
+    "azureEnvironment": {
+      "value": "${AZURE_ENVIRONMENT=AzureCloud}"
+    },
+    "azureOpenAiApiVersion": {
+      "value": "${AZURE_OPENAI_API_VERSION=2024-10-21}"
+    },
+    "azureOpenAiDisableKeys": {
+      "value": "${AZURE_OPENAI_DISABLE_KEYS=true}"
+    },
+    "backendServiceName": {
+      "value": "${AZURE_APP_SERVICE}"
+    },
+    "buildNumber": {
+      "value": "${BUILD_NUMBER}"
+    },
+    "bypass": {
+      "value": "${AZURE_NETWORK_BYPASS=AzureServices}"
+    },
+    "chatGptDeploymentCapacity": {
+      "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT_CAPACITY}"
+    },
+    "chatGptDeploymentName": {
+      "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT}"
+    },
+    "chatGptDeploymentSkuName": {
+      "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT_SKU}"
+    },
+    "chatGptDeploymentVersion": {
+      "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT_VERSION}"
+    },
+    "chatGptModelName": {
+      "value": "${AZURE_OPENAI_CHATGPT_MODEL}"
+    },
+    "chatHistoryContainerName": {
+      "value": "${AZURE_CHAT_HISTORY_CONTAINER_NAME=chat-history}"
+    },
+    "chatHistoryDatabaseName": {
+      "value": "${AZURE_CHAT_HISTORY_DATABASE_NAME=chat-database}"
+    },
+    "chatHistoryVersion": {
+      "value": "${AZURE_CHAT_HISTORY_VERSION=1.0.0}"
+    },
+    "chatWarningBannerText": {
+      "value": "${CHAT_WARNING_BANNER_TEXT=This is a demo of the PubSec Info Assistant. The data you provide will not be stored or used for any other purpose.}"
+    },
+    "chunkTargetSize": {
+      "value": "${AZURE_CHUNK_TARGET_SIZE=750}"
+    },
+    "clientAppId": {
+      "value": "${AZURE_CLIENT_APP_ID}"
+    },
+    "clientAppSecret": {
+      "value": "${AZURE_CLIENT_APP_SECRET}"
+    },
+    "cognitiveServiceName": {
+      "value": "${AZURE_COGNITIVE_SERVICE_NAME}"
+    },
+    "cognitiveServiceResourceGroupLocation": {
+      "value": "${AZURE_COGNITIVE_SERVICE_LOCATION}"
+    },
+    "cognitiveServiceResourceGroupName": {
+      "value": "${AZURE_COGNITIVE_SERVICE_RESOURCE_GROUP}"
+    },
+    "cognitiveServiceSkuName": {
+      "value": "${AZURE_COGNITIVE_SERVICE_SKU=S0}"
+    },
+    "cosmodDbResourceGroupName": {
+      "value": "${AZURE_COSMOSDB_RESOURCE_GROUP}"
+    },
+    "cosmosDbAccountName": {
+      "value": "${AZURE_COSMOSDB_ACCOUNT}"
+    },
+    "cosmosDbLocation": {
+      "value": "${AZURE_COSMOSDB_LOCATION}"
+    },
+    "cosmosDbSkuName": {
+      "value": "${AZURE_COSMOSDB_SKU=serverless}"
+    },
+    "cosmosDbThroughput": {
+      "value": "${AZURE_COSMOSDB_THROUGHPUT}"
+    },
+    "createResourceGroup": {
+      "value": "${CREATE_RESOURCE_GROUP=true}"
+    },
+    "deployAzureOpenAi": {
+      "value": "${DEPLOY_AZURE_OPENAI=true}"
+    },
+    "deployAzureOpenModels": {
+      "value": "${DEPLOY_AZURE_OPEN_MODELS=true}"
+    },
+    "deploymentTarget": {
+      "value": "${DEPLOYMENT_TARGET=appservice}"
+    },
+    "disableAppServicesAuthentication": {
+      "value": "${AZURE_DISABLE_APP_SERVICES_AUTHENTICATION=false}"
+    },
+    "documentIntelligenceApiVersion": {
+      "value": "${AZURE_DOCUMENT_INTELLIGENCE_API_VERSION=2023-07-31}"
+    },
+    "documentIntelligenceResourceGroupLocation": {
+      "value": "${AZURE_DOCUMENT_INTELLIGENCE_LOCATION}"
+    },
+    "documentIntelligenceResourceGroupName": {
+      "value": "${AZURE_DOCUMENT_INTELLIGENCE_RESOURCE_GROUP}"
+    },
+    "documentIntelligenceServiceName": {
+      "value": "${AZURE_DOCUMENT_INTELLIGENCE_SERVICE}"
+    },
+    "documentIntelligenceSkuName": {
+      "value": "${AZURE_DOCUMENT_INTELLIGENCE_SKU=S0}"
+    },
+    "embeddingDeploymentCapacity": {
+      "value": "${AZURE_OPENAI_EMB_DEPLOYMENT_CAPACITY}"
+    },
+    "embeddingDeploymentName": {
+      "value": "${AZURE_OPENAI_EMB_DEPLOYMENT}"
+    },
+    "embeddingDeploymentSkuName": {
+      "value": "${AZURE_OPENAI_EMB_DEPLOYMENT_SKU}"
+    },
+    "embeddingDeploymentVersion": {
+      "value": "${AZURE_OPENAI_EMB_DEPLOYMENT_VERSION}"
+    },
+    "embeddingDimensions": {
+      "value": "${AZURE_OPENAI_EMB_DIMENSIONS}"
+    },
+    "embeddingModelName": {
+      "value": "${AZURE_OPENAI_EMB_MODEL_NAME}"
+    },
+    "enableBingSafeSearch": {
+      "value": "${AZURE_ENABLE_BING_SAFE_SEARCH=true}"
+    },
+    "enableMathAssitant": {
+      "value": "${AZURE_ENABLE_MATH_ASSISTANT=false}"
+    },
+    "enableTabularDataAssistant": {
+      "value": "${AZURE_ENABLE_TABULAR_DATA_ASSISTANT=false}"
+    },
+    "enableUnauthenticatedAccess": {
+      "value": "${AZURE_ENABLE_UNAUTHENTICATED_ACCESS=false}"
+    },
+    "enableUngroundedChat": {
+      "value": "${AZURE_ENABLE_UNGROUNDED_CHAT=false}"
+    },
+    "enableWebChat": {
+      "value": "${AZURE_ENABLE_WEB_CHAT=true}"
+    },
+    "enrichmentBackoff": {
+      "value": "${ENRICHMENT_BACKOFF=60}"
+    },
+    "enrichmentServiceAseId": {
+      "value": "${AZURE_ENRICHMENT_SERVICE_ASE_ID}"
+    },
+    "enrichmentServiceName": {
+      "value": "${AZURE_ENRICHMENT_SERVICE_NAME}"
+    },
+    "enrichmentServicePlanName": {
+      "value": "${AZURE_ENRICHMENT_SERVICE_PLAN_NAME}"
+    },
+    "enrichmentServiceSkuName": {
+      "value": "${AZURE_ENRICHMENT_SERVICE_SKU=B1}"
+    },
+    "enrichmentServiceSkuTier": {
+      "value": "${AZURE_ENRICHMENT_SERVICE_SKU_TIER=Basic}"
+    },
+    "environmentName": {
+      "value": "${AZURE_ENV_NAME}"
+    },
+    "existingAppIntSubnetName": {
+      "value": "${EXISTING_APP_INT_SUBNET_NAME}"
+    },
+    "existingBackendSubnetName": {
+      "value": "${EXISTING_BACKEND_SUBNET_NAME}"
+    },
+    "existingEnrichIntSubnetName": {
+      "value": "${EXISTING_ENRICH_INT_SUBNET_NAME}"
+    },
+    "existingFuncIntSubnetName": {
+      "value": "${EXISTING_FUNC_INT_SUBNET_NAME}"
+    },
+    "existingVnetName": {
+      "value": "${EXISTING_VNET_NAME}"
+    },
+    "existingVnetResourceGroupName": {
+      "value": "${EXISTING_VNET_RESOURCE_GROUP_NAME}"
+    },
+    "existingVnetSubscriptionId": {
+      "value": "${EXISTING_VNET_SUBSCRIPTION_ID}"
+    },
+    "functionMaxSecondsHideOnUpload": {
+      "value": "${FUNCTION_MAX_SECONDS_HIDE_ON_UPLOAD=300}"
+    },
+    "functionServiceAseId": {
+      "value": "${AZURE_FUNCTION_SERVICE_ASE_ID}"
+    },
+    "functionServiceName": {
+      "value": "${AZURE_FUNCTION_SERVICE_NAME}"
+    },
+    "functionServicePlanName": {
+      "value": "${AZURE_FUNCTION_SERVICE_PLAN_NAME}"
+    },
+    "functionServiceSkuName": {
+      "value": "${AZURE_FUNCTION_SERVICE_SKU=P2v3}"
+    },
+    "functionServiceSkuTier": {
+      "value": "${AZURE_FUNCTION_SERVICE_SKU_TIER=PremiumV3}"
+    },
+    "linkPrivateEndpointToPrivateDnsZone": {
+      "value": "${LINK_PRIVATE_ENDPOINT_TO_PRIVATE_DNS_ZONE=true}"
+    },
+    "location": {
+      "value": "${AZURE_LOCATION}"
+    },
+    "logAnalyticsName": {
+      "value": "${AZURE_LOG_ANALYTICS}"
+    },
+    "maxCsvFileSize": {
+      "value": "${MAX_CSV_FILE_SIZE_MB=20}"
+    },
+    "maxEnrichmentRequeueCount": {
+      "value": "${MAX_ENRICHMENT_REQUEUE_COUNT=10}"
+    },
+    "maxPollingRequeueCount": {
+      "value": "${MAX_POLLING_REQUEUE_COUNT=10}"
+    },
+    "maxReadAttempts": {
+      "value": "${MAX_READ_ATTEMPTS=5}"
+    },
+    "maxSubmitRequeueCount": {
+      "value": "${MAX_SUBMIT_REQUEUE_COUNT=10}"
+    },
+    "openAiHost": {
+      "value": "${OPENAI_HOST=azure}"
+    },
+    "openAiLocation": {
+      "value": "${AZURE_OPENAI_LOCATION}"
+    },
+    "openAiResourceGroupName": {
+      "value": "${AZURE_OPENAI_RESOURCE_GROUP}"
+    },
+    "openAiServiceName": {
+      "value": "${AZURE_OPENAI_SERVICE}"
+    },
+    "openAiSkuName": {
+      "value": "S0"
+    },
+    "pdfSubmitQueueBackoff": {
+      "value": "${PDF_SUBMIT_QUEUE_BACKOFF=60}"
+    },
+    "pollingBackoff": {
+      "value": "${POLLING_BACKOFF=60}"
+    },
+    "pollQueueSubmitBackoff": {
+      "value": "${POLL_QUEUE_SUBMIT_BACKOFF=60}"
+    },
+    "principalId": {
+      "value": "${AZURE_PRINCIPAL_ID}"
+    },
+    "privateDnsZonesResourceGroupName": {
+      "value": "${PRIVATE_DNS_ZONES_RESOURCE_GROUP_NAME}"
+    },
+    "privateDnsZonesSubscriptionId": {
+      "value": "${PRIVATE_DNS_ZONES_SUBSCRIPTION_ID}"
+    },
+    "publicNetworkAccess": {
+      "value": "${AZURE_PUBLIC_NETWORK_ACCESS=Disabled}"
+    },
+    "resourceGroupName": {
+      "value": "${AZURE_RESOURCE_GROUP}"
+    },
+    "runningOnAdo": {
+      "value": "${TF_BUILD}"
+    },
+    "runningOnGh": {
+      "value": "${GITHUB_ACTIONS}"
+    },
+    "searchIndexerName": {
+      "value": "${AZURE_SEARCH_INDEXER=gptkbindex-indexer}"
+    },
+    "searchIndexName": {
+      "value": "${AZURE_SEARCH_INDEX=gptkbindex}"
+    },
+    "searchQueryLanguage": {
+      "value": "${AZURE_SEARCH_QUERY_LANGUAGE=en-us}"
+    },    
+    "searchServiceLocation": {
+      "value": "${AZURE_SEARCH_SERVICE_LOCATION}"
+    },
+    "searchServiceName": {
+      "value": "${AZURE_SEARCH_SERVICE}"
+    },
+    "searchServiceResourceGroupName": {
+      "value": "${AZURE_SEARCH_SERVICE_RESOURCE_GROUP}"
+    },
+    "searchServiceSemanticRankerLevel": {
+      "value": "${AZURE_SEARCH_SEMANTIC_RANKER=free}"
+    },
+    "searchServiceSkuName": {
+      "value": "${AZURE_SEARCH_SERVICE_SKU=basic}"
+    },
+    "serverAppId": {
+      "value": "${AZURE_SERVER_APP_ID}"
+    },
+    "serverAppSecret": {
+      "value": "${AZURE_SERVER_APP_SECRET}"
+    },
+    "skipPrivateDnsZones": {
+      "value": "${SKIP_PRIVATE_DNS_ZONES=false}"
+    },
+    "statusLogContainerName": {
+      "value": "${AZURE_STATUS_LOG_CONTAINER_NAME=status-log}"
+    },
+    "statusLogDatabaseName": {
+      "value": "${AZURE_STATUS_LOG_DATABASE_NAME=status-log-database}"
+    },
+    "statusLogVersion": {
+      "value": "${AZURE_STATUS_LOG_VERSION=1.0.0}"
+    },
+    "storageAccountName": {
+      "value": "${AZURE_STORAGE_ACCOUNT}"
+    },
+    "storageContainerName": {
+      "value": "${AZURE_STORAGE_CONTAINER_NAME=content}"
+    },
+    "storageResourceGroupLocation": {
+      "value": "${AZURE_STORAGE_LOCATION=westus2}"
+    },
+    "storageResourceGroupName": {
+      "value": "${AZURE_STORAGE_RESOURCE_GROUP}"
+    },
+    "storageSkuName": {
+      "value": "${AZURE_STORAGE_SKU=Standard_LRS}"
+    },
+    "storageTokenContainerName": {
+      "value": "${AZURE_STORAGE_TOKEN_CONTAINER_NAME=tokens}"
+    },
+    "submitRequeueHideSeconds": {
+      "value": "${SUBMIT_REQUEUE_HIDE_SECONDS=1200}"
+    },
+    "subnetAppIntAddressPrefix": {
+      "value": "${AZURE_SUBNET_APP_INT_ADDRESS_PREFIX=10.0.2.0/24}"
+    },
+    "subnetAppIntName": {
+      "value": "${AZURE_SUBNET_APP_INT_NAME=app-int-subnet}"
+    },
+    "subnetBackendAddressPrefix": {
+      "value": "${AZURE_SUBNET_BACKEND_ADDRESS_PREFIX=10.0.1.0/24}"
+    },
+    "subnetBackendName": {
+      "value": "${AZURE_SUBNET_BACKEND_NAME=backend-subnet}"
+    },
+    "subnetEnrichIntAddressPrefix": {
+      "value": "${AZURE_SUBNET_ENRICH_INT_ADDRESS_PREFIX=10.0.4.0/24}"
+    },
+    "subnetEnrichIntName": {
+      "value": "${AZURE_SUBNET_ENRICH_INT_NAME=enrich-int-subnet}"
+    },
+    "subnetFuncIntAddressPrefix": {
+      "value": "${AZURE_SUBNET_FUNC_INT_ADDRESS_PREFIX=10.0.3.0/24}"
+    },
+    "subnetFuncIntName": {
+      "value": "${AZURE_SUBNET_FUNC_INT_NAME=func-int-subnet}"
+    },
+    "targetPages": {
+      "value": "${TARGET_PAGES=All}"
+    },
+    "targetTranslationLanguage": {
+      "value": "${TARGET_TRANSLATION_LANGUAGE=en}"
+    },
+    "useApplicationInsights": {
+      "value": "${AZURE_USE_APPLICATION_INSIGHTS=true}"
+    },
+    "useAuthentication": {
+      "value": "${AZURE_USE_AUTHENTICATION=false}"
+    },
+    "useExistingPrivateDnsZones": {
+      "value": "${USE_EXISTING_PRIVATE_DNS_ZONES=false}"
+    },
+    "useExistingVnet": {
+      "value": "${USE_EXISTING_VNET=false}"
+    },
+    "usePrivateEndpoint": {
+      "value": "${AZURE_USE_PRIVATE_ENDPOINT=true}"
+    },
+    "useSemanticReranker": {
+      "value": "${AZURE_USE_SEMANTIC_RERANKER=true}"
+    },
+    "useUserUpload": {
+      "value": "${AZURE_USE_USER_UPLOAD=false}"
+    },    
+    "vnetAddressPrefix": {
+      "value": "${AZURE_VNET_ADDRESS_PREFIX=10.0.0.0/16}"
+    }
+  }
+}
