@@ -85,7 +85,7 @@ def random_app_identifier():
 
 def server_app_initial(identifier: int) -> Application:
     return Application(
-        display_name=f"Cobra-Nest Server App {identifier}",
+        display_name=f"PubSec Info Assistant Server App {identifier}",
         sign_in_audience="AzureADMyOrg",
     )
 
@@ -136,7 +136,7 @@ def server_app_permission_setup(server_app_id: str) -> Application:
 
 def client_app(server_app_id: str, server_app: Application, identifier: int) -> Application:
     return Application(
-        display_name=f"Cobra-Nest Client App {identifier}",
+        display_name=f"PubSec Info Assistant Client App {identifier}",
         sign_in_audience="AzureADMyOrg",
         web=WebApplication(
             redirect_uris=["http://localhost:50505/.auth/login/aad/callback"],
