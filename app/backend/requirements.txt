@@ -1,4 +1,3 @@
-#### Any version change made here should also be made and tested for the enrichment and function apps in /functions and /app/enrichment
 azure-cosmos==4.7.0
 azure-identity==1.18.0
 azure-mgmt-cognitiveservices==13.5.0
@@ -15,6 +14,8 @@ langchain-experimental==0.3.2
 langchain-openai==0.2.1
 matplotlib==3.9.2
 microsoft-bing-websearch==1.0.0
+msal
+msgraph-sdk
 numexpr==2.10.1
 openai==1.55.3
 pandas==2.2.3

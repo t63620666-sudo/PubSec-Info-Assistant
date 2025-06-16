@@ -78,7 +78,7 @@ param documentIntelligenceResourceGroupName string = '' // Set in main.parameter
 // Limited regions for new version:
 // https://learn.microsoft.com/azure/ai-services/document-intelligence/concept-layout
 @description('Location for the Document Intelligence resource group')
-@allowed(['eastus', 'westus2', 'westeurope', 'canadaeast'])
+@allowed(['eastus', 'westus2', 'westeurope', 'canadacentral'])
 @metadata({
   azd: {
     type: 'location'
@@ -93,7 +93,7 @@ param cognitiveServiceResourceGroupName string = '' // Set in main.parameters.js
 // Limited regions for new version:
 // https://learn.microsoft.com/azure/ai-services/document-intelligence/concept-layout
 @description('Location for the Document Intelligence resource group')
-@allowed(['eastus', 'westus2', 'westeurope', 'canadaeast'])
+@allowed(['eastus', 'westus2', 'westeurope', 'canadacentral', 'canadaeast'])
 @metadata({
   azd: {
     type: 'location'
@@ -641,9 +641,11 @@ module documentIntelligence 'br/public:avm/res/cognitive-services/account:0.7.2'
     customSubDomainName: !empty(documentIntelligenceServiceName)
       ? documentIntelligenceServiceName
       : '${abbrs.cognitiveServicesDocumentIntelligence}${resourceToken}'
-    publicNetworkAccess: publicNetworkAccess
+    publicNetworkAccess: !empty(ipRules) ? 'Enabled' : publicNetworkAccess
     networkAcls: {
       defaultAction: 'Deny'
+      bypass: bypass
+      ipRules: ipRules
     }
     location: documentIntelligenceResourceGroupLocation
     disableLocalAuth: true
@@ -661,9 +663,11 @@ module cognitiveServices 'br/public:avm/res/cognitive-services/account:0.7.2' = 
     customSubDomainName: !empty(documentIntelligenceServiceName)
       ? documentIntelligenceServiceName
       : '${abbrs.cognitiveServicesDocumentIntelligence}${resourceToken}'
-    publicNetworkAccess: publicNetworkAccess
+    publicNetworkAccess: !empty(ipRules) ? 'Enabled' : publicNetworkAccess
     networkAcls: {
       defaultAction: 'Deny'
+      bypass: bypass
+      ipRules: ipRules
     }
     location: cognitiveServiceResourceGroupLocation
     disableLocalAuth: true
