@@ -2,12 +2,13 @@
 FROM mcr.microsoft.com/devcontainers/python:3.12
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /home/site/wwwroot
 
-COPY . /app
+# Copy the package.json
+COPY . /home/site/wwwroot
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
+RUN pip install -r /home/site/wwwroot/requirements.txt
 
 # Expose the port the app runs on
 EXPOSE 6000
