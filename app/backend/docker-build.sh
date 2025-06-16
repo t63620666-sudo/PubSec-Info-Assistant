@@ -4,7 +4,7 @@ set -eo pipefail
 
 resource_group="$1"
 acr_name="$2"
-function_name="$3"
+webapp_name="$3"
 image_name="$4"
 
 function login_to_acr() {
@@ -14,18 +14,23 @@ function login_to_acr() {
   docker login "$acr_name" --username 00000000-0000-0000-0000-000000000000 --password-stdin <<< "$token"
 }
 
-if [ -z "$resource_group" ] || [ -z "$acr_name" ] || [ -z "$function_name" ] || [ -z "$image_name" ]; then
-  echo "Usage: $0 <resource_group> <acr_name> <function_name> <image_name>"
+if [ -z "$resource_group" ] || [ -z "$acr_name" ] || [ -z "$webapp_name" ] || [ -z "$image_name" ]; then
+  echo "Usage: $0 <resource_group> <acr_name> <webapp_name> <image_name>"
   exit 1
 fi
 
 # Get the directory that this script is in
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+pushd "$DIR/../frontend" || exit
+npm install
+npm run build
+popd || exit
+
 # Build the Docker image with the correct context
-echo "Building Docker image: $function_name"
+echo "Building Docker image: $webapp_name"
 echo -e "\n"
-docker build -t "$function_name" "${DIR}" --build-arg BUILDKIT_INLINE_CACHE=1
+docker build -t "$webapp_name" "${DIR}" --build-arg BUILDKIT_INLINE_CACHE=1
 
 # Generate a unique tag for the image
 tag=$(date -u +"%Y%m%d-%H%M%S")
@@ -33,8 +38,8 @@ image_latest="$acr_name/$image_name:latest"
 image="$acr_name/$image_name:$tag"
 
 echo "Tagging image with: $tag, latest"
-docker tag "$function_name" "$image"
-docker tag "$function_name" "$image_latest"
+docker tag "$webapp_name" "$image"
+docker tag "$webapp_name" "$image_latest"
 
 login_to_acr "$acr_name"
 
@@ -45,8 +50,8 @@ docker push "$image_latest"
 echo "Build and tagging complete. Tag: $tag"
 echo -e "\n"
 
-echo "Updating function app with new image $image"
-az functionapp config container set \
-  --name "$function_name" \
+echo "Updating web app with new image $image"
+az webapp config container set \
+  --name "$webapp_name" \
   --resource-group "$resource_group" \
-  --image "$image" \
+  --container-image-name "$image" \

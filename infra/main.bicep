@@ -822,7 +822,7 @@ module function 'br/public:avm/res/web/site:0.15.1' = {
   scope: mainResourceGroup
   params: {
     // Required parameters
-    kind: 'app,linux,container'
+    kind: 'functionapp,linux,container'
     tags: union(tags, { 'azd-service-name': 'function' })
     name: !empty(functionServiceName) ? functionServiceName : '${abbrs.webSitesFunctions}${resourceToken}'
     serverFarmResourceId: functionServicePlan.outputs.id

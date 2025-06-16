@@ -357,7 +357,7 @@
       "value": "${AZURE_STORAGE_CONTAINER_NAME=content}"
     },
     "storageResourceGroupLocation": {
-      "value": "${AZURE_STORAGE_LOCATION=westus2}"
+      "value": "${AZURE_STORAGE_LOCATION}"
     },
     "storageResourceGroupName": {
       "value": "${AZURE_STORAGE_RESOURCE_GROUP}"
