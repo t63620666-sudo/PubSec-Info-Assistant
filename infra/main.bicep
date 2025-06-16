@@ -62,15 +62,10 @@ param cosmosDbAccountName string = ''
 param cosmosDbThroughput int = 400
 param statusLogDatabaseName string = 'status-log-database'
 param statusLogContainerName string = 'status-log'
-param statusLogVersion string = 'cosmosdb-v2'
-param videoMetadataDatabaseName string = 'video-metadata-database'
-param videoMetadataContainerName string = 'video-metadata'
-param videoProcessingDatabaseName string = 'video-processing-database'
-param videoProcessingContainerName string = 'video-processing'
-param videoAnalysisVersion string = 'cosmosdb-v2'
+param statusLogVersion string = '1.0.0'
 param chatHistoryDatabaseName string = 'chat-database'
-param chatHistoryContainerName string = 'chat-history-v2'
-param chatHistoryVersion string = 'cosmosdb-v2'
+param chatHistoryContainerName string = 'chat-history'
+param chatHistoryVersion string = '1.0.0'
 
 param documentIntelligenceServiceName string = '' // Set in main.parameters.json
 param documentIntelligenceResourceGroupName string = '' // Set in main.parameters.json
@@ -153,7 +148,7 @@ param chatGptDeploymentName string = ''
 param chatGptDeploymentVersion string = ''
 param chatGptDeploymentSkuName string = ''
 param chatGptDeploymentCapacity int = 0
-param chatWarningBannerText string
+param chatWarningBannerText string = ''
 
 var chatGpt = {
   modelName: !empty(chatGptModelName)
@@ -249,7 +244,7 @@ param enableBingSafeSearch bool = true
 param enableUngroundedChat bool = false
 param enableMathAssitant bool = true
 param enableTabularDataAssistant bool = true
-param maxCsvFileSize string = '20'
+param maxCsvFileSizeMb string = '20'
 param chunkTargetSize string = '750'
 param targetPages string = 'ALL'
 param maxSubmitRequeueCount string = '10'
@@ -729,7 +724,7 @@ var appEnvVariables = {
   ENABLE_UNGROUNDED_CHAT: enableUngroundedChat
   ENABLE_MATH_ASSISTANT: enableMathAssitant
   ENABLE_TABULAR_DATA_ASSISTANT: enableTabularDataAssistant
-  MAX_CSV_FILE_SIZE: maxCsvFileSize
+  MAX_CSV_FILE_SIZE: maxCsvFileSizeMb
   AZURE_AI_CREDENTIAL_DOMAIN: 'cognitiveservices.azure.com'
 }
 
@@ -1633,11 +1628,6 @@ output AZURE_CHAT_HISTORY_VERSION string = chatHistoryVersion
 output AZURE_STATUS_LOG_DATABASE string = statusLogDatabaseName
 output AZURE_STATUS_LOG_CONTAINER string = statusLogContainerName
 output AZURE_STATUS_LOG_VERSION string = statusLogVersion
-output AZURE_VIDEO_ANALYSIS_DATABASE string = videoMetadataDatabaseName
-output AZURE_VIDEO_ANALYSIS_CONTAINER string = videoMetadataContainerName
-output AZURE_VIDEO_PROCESSING_DATABASE string = videoProcessingDatabaseName
-output AZURE_VIDEO_PROCESSING_CONTAINER string = videoProcessingContainerName
-output AZURE_VIDEO_ANALYSIS_VERSION string = videoAnalysisVersion
 
 output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
 output AZURE_STORAGE_CONTAINER string = storageContainerName
