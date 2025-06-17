@@ -1621,6 +1621,7 @@ output AZURE_OPENAI_API_VERSION string = isAzureOpenAiHost ? azureOpenAiApiVersi
 output AZURE_OPENAI_RESOURCE_GROUP string = isAzureOpenAiHost ? openAiResourceGroup.name : ''
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = isAzureOpenAiHost ? chatGpt.deploymentName : ''
 output AZURE_OPENAI_EMB_DEPLOYMENT string = isAzureOpenAiHost ? embedding.deploymentName : ''
+output AZURE_OPENAI_EMB_VECTOR_SIZE int = isAzureOpenAiHost ? embedding.dimensions : 0
 
 output AZURE_SEARCH_INDEX string = searchIndexName
 output AZURE_SEARCH_INDEXER string = searchIndexerName
