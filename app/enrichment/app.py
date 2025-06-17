@@ -28,7 +28,8 @@ from shared_code.utilities_helper import UtilitiesHelper
 from shared_code.status_log import State, StatusClassification, StatusLog
 from azure.storage.blob import BlobServiceClient
 from urllib.parse import unquote
-
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
 # === ENV Setup ===
 
 ENV = {
@@ -81,7 +82,9 @@ openai.api_version = "2024-02-01"
 if ENV["LOCAL_DEBUG"] == "true":
     azure_credential = DefaultAzureCredential(authority=AUTHORITY)
 else:
-    azure_credential = ManagedIdentityCredential(authority=AUTHORITY)
+    azure_credential = ManagedIdentityCredential(
+        client_id=os.environ["AZURE_CLIENT_ID"], authority=AUTHORITY
+    )
 # Comment these two lines out if using keys, set your API key in the OPENAI_API_KEY environment variable instead
 openai.api_type = "azure_ad"
 token_provider = get_bearer_token_provider(azure_credential,
@@ -173,6 +176,10 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
 )
+
+# Instrument FastAPI and Requests
+FastAPIInstrumentor.instrument_app(app)
+RequestsInstrumentor().instrument()
 
 # === API Routes ===
 @app.get("/", include_in_schema=False, response_class=RedirectResponse)

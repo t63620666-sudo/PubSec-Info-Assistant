@@ -11,6 +11,7 @@ import json
 import urllib.parse
 import pandas as pd
 import pydantic
+from load_azd_env import load_azd_env
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile, Form
 from fastapi.responses import RedirectResponse, StreamingResponse
@@ -40,7 +41,11 @@ from approaches.tabulardataassistant import (
 from shared_code.status_log import State, StatusClassification, StatusLog
 from azure.cosmos import CosmosClient
 
+# WEBSITE_HOSTNAME is always set by App Service, RUNNING_IN_PRODUCTION is set in main.bicep
+RUNNING_ON_AZURE = os.getenv("WEBSITE_HOSTNAME") is not None or os.getenv("RUNNING_IN_PRODUCTION") is not None
 
+if not RUNNING_ON_AZURE:
+    load_azd_env()
 # === ENV Setup ===
 
 ENV = {
@@ -133,7 +138,9 @@ openai.api_version = "2024-02-01"
 if ENV["LOCAL_DEBUG"] == "true":
     azure_credential = DefaultAzureCredential(authority=AUTHORITY)
 else:
-    azure_credential = ManagedIdentityCredential(authority=AUTHORITY)
+    azure_credential = ManagedIdentityCredential(
+        client_id=os.environ["AZURE_CLIENT_ID"], authority=AUTHORITY
+    )
 # Comment these two lines out if using keys, set your API key in the OPENAI_API_KEY
 # environment variable instead
 openai.api_type = "azure_ad"

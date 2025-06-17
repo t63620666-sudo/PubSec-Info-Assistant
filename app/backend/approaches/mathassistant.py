@@ -28,7 +28,9 @@ else:
 if os.environ.get("LOCAL_DEBUG") == "true":
     azure_credential = DefaultAzureCredential(authority=AUTHORITY)
 else:
-    azure_credential = ManagedIdentityCredential(authority=AUTHORITY)
+    azure_credential = ManagedIdentityCredential(
+        client_id=os.environ["AZURE_CLIENT_ID"], authority=AUTHORITY
+    )
 token_provider = get_bearer_token_provider(azure_credential, f'https://{os.environ.get("AZURE_AI_CREDENTIAL_DOMAIN")}/.default')
 
 model = AzureChatOpenAI(
