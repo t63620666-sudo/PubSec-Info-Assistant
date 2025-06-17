@@ -23,6 +23,6 @@ hooks:
       continueOnError: false
     posix:
       shell: sh
-      run: ./scripts/auth_update.sh;./scripts/prepdocs.sh;
+      run: ./scripts/auth_update.sh;./scripts/deploy_search_indexes.sh;
       interactive: true
       continueOnError: false
