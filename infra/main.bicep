@@ -213,6 +213,7 @@ param subnetAppIntAddressPrefix string = '10.0.2.0/24'
 param subnetFuncIntAddressPrefix string = '10.0.3.0/24'
 param subnetEnrichIntAddressPrefix string = '10.0.4.0/24'
 
+@description('Comma separated list of IPs allowed to access the storage and AI services firewall.')
 param allowedIps string = ''
 
 @allowed(['None', 'AzureServices'])
@@ -291,7 +292,7 @@ var roles = loadJsonContent('./azure_roles.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 
 var ipRules = reduce(
-  filter(array(split(allowedIps, ';')), o => length(trim(o)) > 0),
+  filter(array(split(allowedIps, ',')), o => length(trim(o)) > 0),
   [],
   (cur, next) =>
     union(cur, [
@@ -425,7 +426,7 @@ module monitoring 'core/monitor/monitoring.bicep' = if (useApplicationInsights) 
     logAnalyticsName: !empty(logAnalyticsName)
       ? logAnalyticsName
       : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
-    publicNetworkAccess: publicNetworkAccess
+    publicNetworkAccess: !empty(ipRules) ? 'Enabled' : publicNetworkAccess
     linkedStorageAccountId: storage.outputs.id
   }
 }

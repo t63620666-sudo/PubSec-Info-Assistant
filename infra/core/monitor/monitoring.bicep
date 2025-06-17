@@ -16,7 +16,7 @@ module logAnalytics 'br/public:avm/res/operational-insights/workspace:0.7.0' = {
     tags: tags
     skuName: 'PerGB2018'
     dataRetention: 30
-    publicNetworkAccessForIngestion: publicNetworkAccess
+    publicNetworkAccessForIngestion: publicNetworkAccess    
     publicNetworkAccessForQuery: 'Enabled'
     useResourcePermissions: true
   }
