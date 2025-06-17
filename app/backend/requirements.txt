@@ -28,6 +28,7 @@ opentelemetry-instrumentation-openai
 pandas==2.2.3
 Pillow==10.4.0
 PyJWT==2.10.1
+PyMuPDF
 pytest==8.3.3
 python-dotenv==1.0.1
 python-multipart==0.0.18
