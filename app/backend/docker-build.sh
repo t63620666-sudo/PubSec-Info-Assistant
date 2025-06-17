@@ -10,7 +10,7 @@ image_name="$4"
 function login_to_acr() {
   local acr_name="$1"
   echo "Logging in to ACR: $acr_name"
-  token=$(az acr login --name "$acr_name" --expose-token --output tsv --query accessToken)
+  token=$(az acr login --name "$acr_name" --expose-token --output tsv --query accessToken --only-show-errors)
   docker login "$acr_name" --username 00000000-0000-0000-0000-000000000000 --password-stdin <<< "$token"
 }
 
