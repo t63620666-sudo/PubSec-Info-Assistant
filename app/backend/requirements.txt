@@ -1,9 +1,11 @@
 aiohttp
 azure-ai-documentintelligence==1.0.0b4
 azure-cognitiveservices-speech
-azure-cosmos
-azure-identity
+azure-cosmos==4.7.0
+azure-identity==1.18.0
+azure-mgmt-cognitiveservices==13.5.0
 azure-monitor-opentelemetry
+azure-monitor-opentelemetry-exporter
 azure-search-documents==11.5.1
 azure-storage-blob==12.23.0
 azure-storage-file-datalake
@@ -24,10 +26,9 @@ msgraph-sdk
 numexpr==2.10.1
 openai==1.55.3
 openai-messages-token-helper
-opentelemetry-instrumentation-aiohttp-client
-opentelemetry-instrumentation-asgi
-opentelemetry-instrumentation-httpx
-opentelemetry-instrumentation-openai
+opentelemetry-api
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-requests
 pandas==2.2.3
 Pillow==10.4.0
 PyJWT==2.10.1

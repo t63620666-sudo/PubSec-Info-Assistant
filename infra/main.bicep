@@ -110,6 +110,7 @@ param searchServiceLocation string = '' // Set in main.parameters.json
 param searchServiceSkuName string // Set in main.parameters.json
 param searchIndexName string // Set in main.parameters.json
 param searchIndexerName string // Set in main.parameters.json
+param searchIndexAnalyzerName string = 'standard.lucene' // Set in main.parameters.json
 param searchQueryLanguage string // Set in main.parameters.json
 param searchServiceSemanticRankerLevel string // Set in main.parameters.json
 param searchScope string = ''
@@ -1624,10 +1625,12 @@ output AZURE_OPENAI_EMB_DEPLOYMENT string = isAzureOpenAiHost ? embedding.deploy
 output AZURE_OPENAI_EMB_VECTOR_SIZE int = isAzureOpenAiHost ? embedding.dimensions : 0
 
 output AZURE_SEARCH_INDEX string = searchIndexName
+output AZURE_SEARCH_INDEX_ANALYZER string = searchIndexAnalyzerName
 output AZURE_SEARCH_INDEXER string = searchIndexerName
 output AZURE_SEARCH_SERVICE string = searchService.outputs.name
 output AZURE_SEARCH_SERVICE_ENDPOINT string = searchService.outputs.endpoint
 output AZURE_SEARCH_SERVICE_RESOURCE_GROUP string = searchServiceResourceGroup.name
+output AZURE_SEARCH_SERVICE_RESOURCE_ID string = searchService.outputs.id
 output AZURE_SEARCH_SEMANTIC_RANKER string = actualSearchServiceSemanticRankerLevel
 output AZURE_SEARCH_SERVICE_ASSIGNED_USERID string = searchService.outputs.principalId
 

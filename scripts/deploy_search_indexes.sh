@@ -14,8 +14,7 @@ fi
 
 search_url=$(azd env get-value AZURE_SEARCH_SERVICE_ENDPOINT)
 embedding_vector_size=$(azd env get-value AZURE_OPENAI_EMB_VECTOR_SIZE)
-search_index_analyzer=$(azd env get-value SEARCH_INDEX_ANALYZER)
-azure_search_endpoint=$(azd env get-value TF_VAR_azure_search_scope)
+search_index_analyzer=$(azd env get-value AZURE_SEARCH_INDEX_ANALYZER)
 
 if [ -z "$search_url" ]; then
     echo "Error: AZURE_SEARCH_SERVICE_ENDPOINT is empty."
@@ -29,17 +28,12 @@ fi
 
 if [ -z "$search_index_analyzer" ]; then
     search_index_analyzer="standard.lucene"
-    echo "SEARCH_INDEX_ANALYZER is not set. Using default: $search_index_analyzer"
-fi
-
-if [ -z "$azure_search_endpoint" ]; then
-    azure_search_endpoint="https://search.windows.net"
-    echo "TF_VAR_azure_search_scope is not set. Using default: $azure_search_endpoint"
+    echo "AZURE_SEARCH_INDEX_ANALYZER is not set. Using default: $search_index_analyzer"
 fi
 
 # Obtain an access token for Azure Search
 echo "Fetching access token for Azure Search..."
-access_token=$(az account get-access-token --resource "https://search.windows.net" --query accessToken -o tsv)
+access_token=$(az account get-access-token --resource "https://search.azure.com" --query accessToken -o tsv)
 
 # Fetch existing index definition if it exists
 echo "Updating index file with environment variables..."
@@ -78,7 +72,9 @@ fi
 
 # Create vector index
 echo "Creating index $index_vector_name ..."
-curl -s -X PUT --header "Content-Type: application/json" --header "Authorization: Bearer $access_token" --data "$index_vector_json" $search_url/indexes/$index_vector_name?api-version=2024-05-01-preview
-
-echo -e "\n"
-echo "Successfully deployed $index_vector_name."
+curl -s -X PUT --header "Content-Type: application/json" --header "Authorization: Bearer $access_token" --data "$index_vector_json" $search_url/indexes/$index_vector_name?api-version=2024-05-01-preview > /dev/null
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to create or update the index $index_vector_name."
+    exit 1
+fi
+echo "Successfully deployed $index_vector_name to Azure Search Service at $search_url"

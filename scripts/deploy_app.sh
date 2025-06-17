@@ -7,9 +7,9 @@ if [ -z "$deploy_component" ]; then
     echo "No component specified. Defaulting to 'all'."
 fi
 
-if [ "$deploy_component" != "function" ] && [ "$deploy_component" != "backend" ] && [ "$deploy_component" != "all" ]; then
+if [ "$deploy_component" != "function" ] && [ "$deploy_component" != "webapp" ] && [ "$deploy_component" != "all" ]; then
     echo "Invalid component: $deploy_component"
-    echo "Available components: function, backend, all"
+    echo "Available components: function, webapp, all"
     exit 1
 fi
 
@@ -25,11 +25,11 @@ if [ "$deploy_component" == "function" ] || [ "$deploy_component" == "all" ]; th
     . ./app/functions/docker-build.sh "$resource_group" "$acr_name" "$function_name" "$function_image_name"
 fi
 
-if [ "$deploy_component" == "backend" ] || [ "$deploy_component" == "all" ]; then
-    echo "Deploying backend..."
+if [ "$deploy_component" == "webapp" ] || [ "$deploy_component" == "all" ]; then
+    echo "Deploying webapp..."
     
     backend_name=$(azd env get-value AZURE_WEBAPP_SERVICE_NAME)
-    backend_image_name="backend"
+    backend_image_name="webapp"
 
     . ./app/backend/docker-build.sh "$resource_group" "$acr_name" "$backend_name" "$backend_image_name"
 fi
