@@ -1656,3 +1656,4 @@ output AZURE_CONTAINER_REGISTRY_NAME string = containerRegistry.outputs.name
 
 output AZURE_WEBAPP_SERVICE_NAME string = deploymentTarget == 'appservice' ? webapp.outputs.name : ''
 output AZURE_FUNCTION_SERVICE_NAME string = function.outputs.name
+output AZURE_ENRICHMENT_SERVICE_NAME string = enrichmentApp.outputs.name

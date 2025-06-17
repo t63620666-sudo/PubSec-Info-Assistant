@@ -7,7 +7,7 @@ if [ -z "$deploy_component" ]; then
     echo "No component specified. Defaulting to 'all'."
 fi
 
-if [ "$deploy_component" != "function" ] && [ "$deploy_component" != "webapp" ] && [ "$deploy_component" != "all" ]; then
+if [ "$deploy_component" != "function" ] && [ "$deploy_component" != "webapp" ] && [ "$deploy_component" != "enrichment" ] && [ "$deploy_component" != "all" ]; then
     echo "Invalid component: $deploy_component"
     echo "Available components: function, webapp, all"
     exit 1
@@ -32,6 +32,15 @@ if [ "$deploy_component" == "webapp" ] || [ "$deploy_component" == "all" ]; then
     backend_image_name="webapp"
 
     . ./app/backend/docker-build.sh "$resource_group" "$acr_name" "$backend_name" "$backend_image_name"
+fi
+
+if [ "$deploy_component" == "enrichment" ] || [ "$deploy_component" == "all" ]; then
+    echo "Deploying enrichment app..."
+    
+    enrichment_name=$(azd env get-value AZURE_ENRICHMENT_SERVICE_NAME)
+    enrichment_image_name="enrichment"
+
+    . ./app/enrichment/docker-build.sh "$resource_group" "$acr_name" "$enrichment_name" "$enrichment_image_name"
 fi
 
 echo "Done."
