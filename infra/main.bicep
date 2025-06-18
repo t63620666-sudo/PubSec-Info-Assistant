@@ -1606,8 +1606,12 @@ module searchContribRoleOpenAi 'core/security/role.bicep' = if (isAzureOpenAiHos
 
 output AZURE_LOCATION string = location
 output AZURE_TENANT_ID string = tenantId
+output AZURE_SUBSCRIPTION_ID string = subscription().subscriptionId
 output AZURE_AUTH_TENANT_ID string = authTenantId
 output AZURE_RESOURCE_GROUP string = mainResourceGroup.name
+
+output AZURE_BLOB_STORAGE_ACCOUNT string = storage.outputs.name
+output AZURE_BLOB_STORAGE_ENDPOINT string = storage.outputs.primaryEndpoints.blob
 
 // Shared by all OpenAI deployments
 output OPENAI_HOST string = openAiHost
@@ -1635,6 +1639,7 @@ output AZURE_SEARCH_SERVICE_RESOURCE_ID string = searchService.outputs.id
 output AZURE_SEARCH_SEMANTIC_RANKER string = actualSearchServiceSemanticRankerLevel
 output AZURE_SEARCH_SERVICE_ASSIGNED_USERID string = searchService.outputs.principalId
 
+output COSMOSDB_URL string = cosmosDb.outputs.endpoint
 output AZURE_COSMOSDB_ACCOUNT string = cosmosDb.outputs.name
 output AZURE_COSMOSDB_RESOURCE_GROUP string = cosmosDbResourceGroup.name
 output AZURE_CHAT_HISTORY_DATABASE string = chatHistoryDatabaseName
@@ -1658,3 +1663,5 @@ output AZURE_CONTAINER_REGISTRY_NAME string = containerRegistry.outputs.name
 output AZURE_WEBAPP_SERVICE_NAME string = deploymentTarget == 'appservice' ? webapp.outputs.name : ''
 output AZURE_FUNCTION_SERVICE_NAME string = function.outputs.name
 output AZURE_ENRICHMENT_SERVICE_NAME string = enrichmentApp.outputs.name
+
+output AZURE_AI_ENDPOINT string = cognitiveServices.outputs.endpoint

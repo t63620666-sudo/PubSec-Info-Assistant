@@ -50,7 +50,6 @@ ENV = {
     "AZURE_SEARCH_SERVICE": "gptkb",
     "AZURE_SEARCH_SERVICE_ENDPOINT": None,
     "AZURE_SEARCH_INDEX": "gptkbindex",
-    "AZURE_SEARCH_AUDIENCE": None,
     "USE_SEMANTIC_RERANKER": "true",
     "AZURE_OPENAI_SERVICE": "myopenai",
     "AZURE_OPENAI_RESOURCE_GROUP": "",
@@ -157,8 +156,7 @@ statusLog = StatusLog(
 search_client = SearchClient(
     endpoint=ENV["AZURE_SEARCH_SERVICE_ENDPOINT"],
     index_name=ENV["AZURE_SEARCH_INDEX"],
-    credential=azure_credential,
-    audience=ENV["AZURE_SEARCH_AUDIENCE"]
+    credential=azure_credential
 )
 
 blob_client = BlobServiceClient(
@@ -175,9 +173,7 @@ MODEL_VERSION = ''
 # Set up OpenAI management client
 openai_mgmt_client = CognitiveServicesManagementClient(
     credential=azure_credential,
-    subscription_id=ENV["AZURE_SUBSCRIPTION_ID"],
-    base_url=ENV["AZURE_ARM_MANAGEMENT_API"],
-    credential_scopes=[ENV["AZURE_ARM_MANAGEMENT_API"] + "/.default"])
+    subscription_id=ENV["AZURE_SUBSCRIPTION_ID"])
 
 deployment = openai_mgmt_client.deployments.get(
     resource_group_name=ENV["AZURE_OPENAI_RESOURCE_GROUP"],
