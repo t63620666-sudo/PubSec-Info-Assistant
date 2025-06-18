@@ -15,7 +15,6 @@ from langchain_community.agent_toolkits.load_tools import load_tools
 from azure.identity import ManagedIdentityCredential, AzureAuthorityHosts, DefaultAzureCredential, get_bearer_token_provider
 
 warnings.filterwarnings('ignore')
-load_dotenv()
 
 OPENAI_API_BASE = os.environ.get("AZURE_OPENAI_ENDPOINT")
 OPENAI_DEPLOYMENT_NAME =  os.getenv("AZURE_OPENAI_CHATGPT_DEPLOYMENT")
@@ -27,16 +26,17 @@ else:
 
 if os.environ.get("LOCAL_DEBUG") == "true":
     azure_credential = DefaultAzureCredential(authority=AUTHORITY)
-else:
+elif os.environ.get("AZURE_CLIENT_ID"):
     azure_credential = ManagedIdentityCredential(
         client_id=os.environ["AZURE_CLIENT_ID"], authority=AUTHORITY
     )
+else:
+    azure_credential = ManagedIdentityCredential(authority=AUTHORITY)
 token_provider = get_bearer_token_provider(azure_credential, f'https://{os.environ.get("AZURE_AI_CREDENTIAL_DOMAIN")}/.default')
 
 model = AzureChatOpenAI(
-    azure_ad_token_provider=token_provider,
-    azure_endpoint=OPENAI_API_BASE,
-    openai_api_version="2024-02-01" ,
+    azure_ad_token_provider=token_provider,    
+    openai_api_version="2024-02-01",
     deployment_name=OPENAI_DEPLOYMENT_NAME)
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------
