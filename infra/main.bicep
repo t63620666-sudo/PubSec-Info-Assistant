@@ -1619,6 +1619,7 @@ output AZURE_OPENAI_SERVICE string = isAzureOpenAiHost
   ? (deployAzureOpenAi ? openAi.outputs.name : existingOpenAi.name)
   : ''
 output AZURE_OPENAI_API_VERSION string = isAzureOpenAiHost ? azureOpenAiApiVersion : ''
+output AZURE_OPENAI_ENDPOINT string = !deployAzureOpenAi ? existingOpenAi.properties.endpoint : openAi.outputs.endpoint
 output AZURE_OPENAI_RESOURCE_GROUP string = isAzureOpenAiHost ? openAiResourceGroup.name : ''
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = isAzureOpenAiHost ? chatGpt.deploymentName : ''
 output AZURE_OPENAI_EMB_DEPLOYMENT string = isAzureOpenAiHost ? embedding.deploymentName : ''
