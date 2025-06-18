@@ -11,7 +11,6 @@ import json
 import urllib.parse
 import pandas as pd
 import pydantic
-from load_azd_env import load_azd_env
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile, Form
 from fastapi.responses import RedirectResponse, StreamingResponse
@@ -41,11 +40,6 @@ from approaches.tabulardataassistant import (
 from shared_code.status_log import State, StatusClassification, StatusLog
 from azure.cosmos import CosmosClient
 
-# WEBSITE_HOSTNAME is always set by App Service, RUNNING_IN_PRODUCTION is set in main.bicep
-RUNNING_ON_AZURE = os.getenv("WEBSITE_HOSTNAME") is not None or os.getenv("RUNNING_IN_PRODUCTION") is not None
-
-if not RUNNING_ON_AZURE:
-    load_azd_env()
 # === ENV Setup ===
 
 ENV = {

@@ -1,11 +1,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-#Turn warnings off
-#from st_pages import Page, show_pages, add_page_title
+# Turn warnings off
+# from st_pages import Page, show_pages, add_page_title
+from math import pi
+from typing import Union
+from math import sqrt, cos, sin
+from typing import Optional
+from langchain.chains import LLMMathChain
+from pydantic import BaseModel
+from langchain.tools import BaseTool
 import os
 import warnings
-from dotenv import load_dotenv
 from typing import ClassVar
 
 from langchain_openai import AzureChatOpenAI
@@ -17,7 +23,7 @@ from azure.identity import ManagedIdentityCredential, AzureAuthorityHosts, Defau
 warnings.filterwarnings('ignore')
 
 OPENAI_API_BASE = os.environ.get("AZURE_OPENAI_ENDPOINT")
-OPENAI_DEPLOYMENT_NAME =  os.getenv("AZURE_OPENAI_CHATGPT_DEPLOYMENT")
+OPENAI_DEPLOYMENT_NAME = os.getenv("AZURE_OPENAI_CHATGPT_DEPLOYMENT")
 
 if os.environ.get("AZURE_OPENAI_AUTHORITY_HOST") == "AzureUSGovernment":
     AUTHORITY = AzureAuthorityHosts.AZURE_GOVERNMENT
@@ -32,24 +38,21 @@ elif os.environ.get("AZURE_CLIENT_ID"):
     )
 else:
     azure_credential = ManagedIdentityCredential(authority=AUTHORITY)
-token_provider = get_bearer_token_provider(azure_credential, f'https://{os.environ.get("AZURE_AI_CREDENTIAL_DOMAIN")}/.default')
+
+token_provider = get_bearer_token_provider(
+    azure_credential, f'https://{os.environ.get("AZURE_AI_CREDENTIAL_DOMAIN")}/.default')
 
 model = AzureChatOpenAI(
-    azure_ad_token_provider=token_provider,    
+    azure_ad_token_provider=token_provider,
+    azure_endpoint=OPENAI_API_BASE,
     openai_api_version="2024-02-01",
     deployment_name=OPENAI_DEPLOYMENT_NAME)
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------------------------
 # Addition of custom tools
 
-#1. Tool to calculate pythagorean theorem
+# 1. Tool to calculate pythagorean theorem
 
-from langchain.tools import BaseTool
-from pydantic import BaseModel
-from langchain.chains import LLMMathChain
-from typing import Optional
-from math import sqrt, cos, sin
-from typing import Union
 desc = (
     "use this tool when you need to calculate the length of a hypotenuse"
     "given one or two sides of a triangle and/or an angle (in degrees). "
@@ -58,18 +61,24 @@ desc = (
 )
 
 # Define the BaseCache to make the tool compatible with the Langchain
+
+
 class BaseCache(BaseModel):
     pass
+
+
 class Callbacks(BaseModel):
     pass
+
 
 # Call model_rebuild for LLMMathChain
 LLMMathChain.model_rebuild()
 
+
 class PythagorasTool(BaseTool):
     name: ClassVar[str] = "Hypotenuse calculator"
     description: ClassVar[str] = desc
-    
+
     def _run(
         self,
         adjacent_side: Optional[Union[int, float]] = None,
@@ -85,17 +94,15 @@ class PythagorasTool(BaseTool):
             return opposite_side / sin(float(angle))
         else:
             return "Could not calculate the hypotenuse of the triangle. Need two or more of `adjacent_side`, `opposite_side`, or `angle`."
-    
+
     def _arun(self, query: str):
         raise NotImplementedError("This tool does not support async")
 
 
-#________________________________________
+# ________________________________________
 
-#2.tool to calculate the area of a circle
-from math import pi
+# 2.tool to calculate the area of a circle
 
-  
 
 class CircumferenceTool(BaseTool):
     name: ClassVar[str] = "Circumference calculator"
@@ -106,7 +113,7 @@ class CircumferenceTool(BaseTool):
 
     def _arun(self, radius: int):
         raise NotImplementedError("This tool does not support async")
-    
+
 
 # Examples of built-in tools
 llm_math_tool = load_tools(["llm-math"], llm=model)
@@ -127,16 +134,17 @@ In handling math queries, try using your tools initially. If no solution is foun
 # You can choose which of the tools to use or create separate agents for different tools
 zero_shot_agent_math = initialize_agent(
     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-        tools=llm_math_tool,
+    tools=llm_math_tool,
     llm=model,
     verbose=True,
     max_iterations=10,
     max_execution_time=120,
     handle_parsing_errors=True,
     return_intermediate_steps=True,
-    agent_kwargs={ 'prefix':PREFIX})
+    agent_kwargs={'prefix': PREFIX})
 
 # Prompt template for Zeroshot agent
+
 
 async def stream_agent_responses(question):
     zero_shot_agent_math = initialize_agent(
@@ -147,7 +155,7 @@ async def stream_agent_responses(question):
         max_iterations=10,
         max_execution_time=120,
         handle_parsing_errors=True,
-        agent_kwargs={ 'prefix':PREFIX}
+        agent_kwargs={'prefix': PREFIX}
     )
     for chunk in zero_shot_agent_math.stream({"input": question}):
         if "actions" in chunk:
@@ -158,7 +166,7 @@ async def stream_agent_responses(question):
             for step in chunk["steps"]:
                 yield f'data: Tool Result: `{step.observation}` \n\n'
         elif "output" in chunk:
-            output =   f'data: Final Output: `{chunk["output"]}`\n\n'
+            output = f'data: Final Output: `{chunk["output"]}`\n\n'
             yield output
             yield (f'event: end\ndata: Stream ended\n\n')
             return
@@ -166,44 +174,47 @@ async def stream_agent_responses(question):
             raise ValueError()
 
 
-
-# function to stream agent response 
-def process_agent_scratch_pad( question):
+# function to stream agent response
+def process_agent_scratch_pad(question):
     messages = []
     for chunk in zero_shot_agent_math.stream({"input": question}):
         if "actions" in chunk:
             for action in chunk["actions"]:
-                messages.append(f"Calling Tool: `{action.tool}` with input `{action.tool_input}`\n")
+                messages.append(
+                    f"Calling Tool: `{action.tool}` with input `{action.tool_input}`\n")
                 messages.append(f'Processing: {action.log} \n')
         elif "steps" in chunk:
             for step in chunk["steps"]:
-                messages.append(f"Tool Result: `{step.observation}`\n")                               
+                messages.append(f"Tool Result: `{step.observation}`\n")
         elif "output" in chunk:
             messages.append(f'Final Output: {chunk["output"]}')
         else:
             raise ValueError()
     return messages
-        
-#Function to stream final output       
-def process_agent_response( question):
+
+# Function to stream final output
+
+
+def process_agent_response(question):
     stream = zero_shot_agent_math.stream({"input": question})
     if stream:
         for chunk in stream:
             if "output" in chunk:
-                output =    f'Final Output: {chunk["output"]}'
+                output = f'Final Output: {chunk["output"]}'
     return output
-  
 
-#Function to process clues
-def generate_response(question):    
+
+# Function to process clues
+def generate_response(question):
     prompt_template = ChatPromptTemplate.from_template(template=prompt)
     messages = prompt_template.format_messages(
-    question=question
+        question=question
     )
     response = model(messages)
     return response.content
 
-#prompt for clues
+# prompt for clues
+
 
 prompt = """
 Act as a tutor that helps students solve math and arithmetic reasoning questions.
@@ -262,16 +273,3 @@ Clues:
 Question: {question}
 
 """
-
-
-        
-   
-        
-        
-
-        
-
-
-
-            
-   

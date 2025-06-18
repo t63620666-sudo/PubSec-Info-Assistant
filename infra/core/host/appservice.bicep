@@ -123,8 +123,7 @@ resource appService 'Microsoft.Web/sites@2024-04-01' = {
       !empty(applicationInsightsName)
         ? { APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString }
         : {},
-      !empty(keyVaultName) ? { AZURE_KEY_VAULT_ENDPOINT: keyVault.properties.vaultUri } : {},
-      !empty(clientAppId) ? { AZURE_CLIENT_ID: clientAppId } : {}
+      !empty(keyVaultName) ? { AZURE_KEY_VAULT_ENDPOINT: keyVault.properties.vaultUri } : {}
     )
   }
 

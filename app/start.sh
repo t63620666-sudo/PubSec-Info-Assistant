@@ -52,7 +52,7 @@ cd ../backend || exit 1
 port=7071
 host="127.0.0.1"
 export LOCAL_DEBUG="true"
-../../.venv/bin/python -m uvicorn app:app --port "$port" --host "$host"
+../../.venv/bin/python -m uvicorn main:app --port "$port" --host "$host"
 out=$?
 if [ $out -ne 0 ]; then
     echo "Failed to start backend"
