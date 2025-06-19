@@ -1796,5 +1796,6 @@ output AZURE_WEBAPP_SERVICE_NAME string = deploymentTarget == 'appservice' ? web
 output AZURE_FUNCTION_SERVICE_NAME string = function.outputs.name
 output AZURE_ENRICHMENT_SERVICE_NAME string = enrichmentApp.outputs.name
 output ENRICHMENT_APPSERVICE_URL string = 'https://${enrichmentApp.outputs.defaultHostname}'
+output TARGET_EMBEDDINGS_MODEL string = 'azure-openai_${embedding.deploymentName}'
 
 output AZURE_AI_ENDPOINT string = cognitiveServices.outputs.endpoint

@@ -281,7 +281,7 @@ def embed_texts(model: str, texts: List[str]):
         }
 
     except Exception as error:
-        logging.error(f"Failed to embed: {str(error)}")
+        log.error(f"Failed to embed: {str(error)}")
         raise HTTPException(
             status_code=500, detail=f"Failed to embed: {str(error)}") from error
 

@@ -18,6 +18,7 @@ from approaches.approach import Approach
 from core.messagebuilder import MessageBuilder
 from core.modelhelper import get_token_limit
 
+
 class ChatWebRetrieveRead(Approach):
     """Class to help perform RAG based on Bing Search and ChatGPT."""
 
@@ -54,35 +55,36 @@ class ChatWebRetrieveRead(Approach):
     Do not include any special characters like '+'.
     If you cannot generate a search query, return just the number 0.
     """
-    
-     
+
     QUERY_PROMPT_FEW_SHOTS = [
-    {'role': Approach.USER, 'content': 'Could you search the web for information on the latest advancements in artificial intelligence,citing the provided URLs.?'},
-    {'role': Approach.ASSISTANT, 'content': 'User wants to know about recent advancements in artificial intelligence,with citations from the provided URLs.'},
-    {'role': Approach.USER, 'content': 'can you search the web and provide information on impact of climate change on global agriculture,citing the content from the URLs provided. ?'},
-    {'role': Approach.ASSISTANT, 'content': 'User is seeking information about the effects of climate change on global agriculture,with citations from the content provided in the URLs.'}
-]
-       
+        {'role': Approach.USER, 'content': 'Could you search the web for information on the latest advancements in artificial intelligence,citing the provided URLs.?'},
+        {'role': Approach.ASSISTANT, 'content': 'User wants to know about recent advancements in artificial intelligence,with citations from the provided URLs.'},
+        {'role': Approach.USER, 'content': 'can you search the web and provide information on impact of climate change on global agriculture,citing the content from the URLs provided. ?'},
+        {'role': Approach.ASSISTANT, 'content': 'User is seeking information about the effects of climate change on global agriculture,with citations from the content provided in the URLs.'}
+    ]
 
     RESPONSE_PROMPT_FEW_SHOTS = [
-        {"role": Approach.USER ,'content': 'I am looking for information in source urls and its snippets'},
-        {'role': Approach.ASSISTANT, 'content': 'user is looking for information in source urls and its snippets.'},
-        {"role": Approach.USER, 'content': 'I need data extracted from the URLs and their corresponding snippets.'},
-        {'role': Approach.ASSISTANT, 'content': 'User requires data extracted from the URLs and their snippets.'}
+        {"role": Approach.USER,
+            'content': 'I am looking for information in source urls and its snippets'},
+        {'role': Approach.ASSISTANT,
+            'content': 'user is looking for information in source urls and its snippets.'},
+        {"role": Approach.USER,
+            'content': 'I need data extracted from the URLs and their corresponding snippets.'},
+        {'role': Approach.ASSISTANT,
+            'content': 'User requires data extracted from the URLs and their snippets.'}
     ]
-    
- 
+
     citations = {}
     approach_class = ""
 
-    def __init__(self, model_name: str, 
-                 chatgpt_deployment: str, 
-                 query_term_language: str, 
-                 bing_search_endpoint: str, 
-                 bing_search_key: str, 
+    def __init__(self, model_name: str,
+                 chatgpt_deployment: str,
+                 query_term_language: str,
+                 bing_search_endpoint: str,
+                 bing_search_key: str,
                  bing_safe_search: bool,
                  oai_endpoint: str,
-                 azure_ai_token_provider:str
+                 azure_ai_token_provider: str
                  ):
         self.name = "ChatBingSearch"
         self.model_name = model_name
@@ -92,19 +94,17 @@ class ChatWebRetrieveRead(Approach):
         self.bing_search_endpoint = bing_search_endpoint
         self.bing_search_key = bing_search_key
         self.bing_safe_search = bing_safe_search
-        
+
         openai.api_base = oai_endpoint
         openai.api_type = 'azure'
         openai.api_version = "2024-02-01"
-       
-         
-        self.client = AsyncAzureOpenAI(
-        azure_endpoint = openai.api_base , 
-        azure_ad_token_provider=azure_ai_token_provider,
-        api_version=openai.api_version)
-        
 
-    async def run(self, history: Sequence[dict[str, str]],overrides: dict[str, Any], citation_lookup: dict[str, Any], thought_chain: dict[str, Any]) -> Any:
+        self.client = AsyncAzureOpenAI(
+            azure_endpoint=openai.api_base,
+            azure_ad_token_provider=azure_ai_token_provider,
+            api_version=openai.api_version)
+
+    async def run(self, history: Sequence[dict[str, str]], overrides: dict[str, Any], citation_lookup: dict[str, Any], thought_chain: dict[str, Any]) -> Any:
         """
         Runs the approach to simulate experience with Bing Chat.
 
@@ -118,7 +118,7 @@ class ChatWebRetrieveRead(Approach):
         log = logging.getLogger("uvicorn")
         log.setLevel('DEBUG')
         log.propagate = True
-        
+
         query_resp = None
         user_query = history[-1].get("user")
         user_persona = overrides.get("user_persona", "")
@@ -140,23 +140,25 @@ class ChatWebRetrieveRead(Approach):
             user_query,
             self.QUERY_PROMPT_FEW_SHOTS,
             self.chatgpt_token_limit - len(user_query)
-            )
-        
+        )
+
         try:
             query_resp = await self.make_chat_completion(messages)
         except BadRequestError as e:
-            log.error(f"Error generating optimized keyword search: {str(e.body['message'])}")
+            log.error(
+                f"Error generating optimized keyword search: {str(e.body['message'])}")
             yield json.dumps({"error": f"Error generating optimized keyword search: {str(e.body['message'])}"}) + "\n"
             return
         except Exception as e:
             log.error(f"Error generating optimized keyword search: {str(e)}")
             yield json.dumps({"error": f"Error generating optimized keyword search: {str(e)}"}) + "\n"
             return
-        
+
         thought_chain["web_search_term"] = query_resp
         # STEP 2: Use the search query to get the top web search results
         url_snippet_dict = await self.web_search_with_safe_search(query_resp)
-        content = ', '.join(f'{snippet} | {url}' for url, snippet in url_snippet_dict.items())
+        content = ', '.join(f'{snippet} | {url}' for url,
+                            snippet in url_snippet_dict.items())
         user_query += "Url Sources:\n" + content + "\n\n"
 
         # Use re.sub to replace anything within square brackets with an empty string
@@ -175,8 +177,8 @@ class ChatWebRetrieveRead(Approach):
             self.model_name,
             user_query,
             self.RESPONSE_PROMPT_FEW_SHOTS,
-             max_tokens=4097 - 500
-         )
+            max_tokens=4097 - 500
+        )
 
         msg_to_display = '\n\n'.join([str(message) for message in messages])
         try:
@@ -187,15 +189,15 @@ class ChatWebRetrieveRead(Approach):
                 temperature=0.6,
                 n=1,
                 stream=True
-            ) 
-            
+            )
+
             # Return the data we know
             yield json.dumps({"data_points": {},
-                            "thoughts": f"Searched for:<br>{query_resp}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>'),
-                            "thought_chain": thought_chain,
-                            "work_citation_lookup": {},
-                            "web_citation_lookup": self.citations}) + "\n"
-            
+                              "thoughts": f"Searched for:<br>{query_resp}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>'),
+                              "thought_chain": thought_chain,
+                              "work_citation_lookup": {},
+                              "web_citation_lookup": self.citations}) + "\n"
+
             # STEP 4: Format the response
             async for chunk in resp:
                 # Check if there is at least one element and the first element has the key 'delta'
@@ -205,22 +207,24 @@ class ChatWebRetrieveRead(Approach):
                     if chunk.choices[0].finish_reason == 'content_filter':
                         for category, details in chunk.choices[0].content_filter_results.items():
                             if details['filtered']:
-                                filter_reasons.append(f"{category} ({details['severity']})")
+                                filter_reasons.append(
+                                    f"{category} ({details['severity']})")
 
                     # Raise an error if any filters are triggered
                     if filter_reasons:
-                        error_message = "The generated content was filtered due to triggering Azure OpenAI's content filtering system. Reason(s): The response contains content flagged as " + ", ".join(filter_reasons)
+                        error_message = "The generated content was filtered due to triggering Azure OpenAI's content filtering system. Reason(s): The response contains content flagged as " + ", ".join(
+                            filter_reasons)
                         raise ValueError(error_message)
                     yield json.dumps({"content": chunk.choices[0].delta.content}) + "\n"
         except BadRequestError as e:
-            log.error(f"Error generating chat completion: {str(e.body['message'])}")
+            log.error(
+                f"Error generating chat completion: {str(e.body['message'])}")
             yield json.dumps({"error": f"Error generating chat completion: {str(e.body['message'])}"}) + "\n"
             return
         except Exception as e:
             log.error(f"Error generating chat completion: {str(e)}")
             yield json.dumps({"error": f"Error generating chat completion: {str(e)}"}) + "\n"
             return
-    
 
     async def web_search_with_safe_search(self, user_query):
         """
@@ -232,7 +236,8 @@ class ChatWebRetrieveRead(Approach):
         Returns:
             dict: A dictionary containing URL snippets as values and corresponding URLs as keys.
         """
-        client = WebSearchClient(AzureKeyCredential(self.bing_search_key), endpoint=self.bing_search_endpoint)
+        client = WebSearchClient(AzureKeyCredential(
+            self.bing_search_key), endpoint=self.bing_search_endpoint)
 
         try:
             if self.bing_safe_search:
@@ -256,7 +261,8 @@ class ChatWebRetrieveRead(Approach):
                         "page_number": "0",
                     }
 
-                    url_snippet_dict[page.url] = page.snippet.replace("[", "").replace("]", "")
+                    url_snippet_dict[page.url] = page.snippet.replace(
+                        "[", "").replace("]", "")
 
                 return url_snippet_dict
 
@@ -277,8 +283,7 @@ class ChatWebRetrieveRead(Approach):
             str: The generated chat completion response.
         """
 
-        
-        chat_completion= await self.client.chat.completions.create(
+        chat_completion = await self.client.chat.completions.create(
             model=self.chatgpt_deployment,
             messages=messages,
             temperature=0.6,
@@ -290,22 +295,24 @@ class ChatWebRetrieveRead(Approach):
         if chat_completion.choices[0].finish_reason == 'content_filter':
             for category, details in chat_completion.choices[0].content_filter_results.items():
                 if details['filtered']:
-                    filter_reasons.append(f"{category} ({details['severity']})")
+                    filter_reasons.append(
+                        f"{category} ({details['severity']})")
 
         # Raise an error if any filters are triggered
         if filter_reasons:
-            error_message = "The generated content was filtered due to triggering Azure OpenAI's content filtering system. Reason(s): The response contains content flagged as " + ", ".join(filter_reasons)
+            error_message = "The generated content was filtered due to triggering Azure OpenAI's content filtering system. Reason(s): The response contains content flagged as " + ", ".join(
+                filter_reasons)
             raise ValueError(error_message)
         return chat_completion.choices[0].message.content
-    
+
     def get_messages_builder(
         self,
         system_prompt: str,
         model_id: str,
         user_conv: str,
-        few_shots = [dict[str, str]],
+        few_shots=[dict[str, str]],
         max_tokens: int = 4096,
-        ) -> []:
+    ) -> []:
         """
         Construct a list of messages from the chat history and the user's question.
         """
@@ -313,15 +320,14 @@ class ChatWebRetrieveRead(Approach):
 
         # Few Shot prompting. Add examples to show the chat what responses we want. It will try to mimic any responses and make sure they match the rules laid out in the system message.
         for shot in few_shots:
-            message_builder.append_message(shot.get('role'), shot.get('content'))
+            message_builder.append_message(
+                shot.get('role'), shot.get('content'))
 
         user_content = user_conv
         append_index = len(few_shots) + 1
 
-        message_builder.append_message(self.USER, user_content, index=append_index)
+        message_builder.append_message(
+            self.USER, user_content, index=append_index)
 
         messages = message_builder.messages
-        return messages    
-      
-
-
+        return messages
