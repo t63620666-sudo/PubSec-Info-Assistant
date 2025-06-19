@@ -1050,7 +1050,8 @@ var cognitiveServicesPrivateEndpointConnection = (usePrivateEndpoint)
 var websiteResourceIds = union(
   [],
   empty(appServicePlanAseId) && deploymentTarget == 'appservice' ? [webapp.outputs.id] : [],
-  empty(functionServiceAseId) ? [function.outputs.resourceId] : []
+  empty(functionServiceAseId) ? [function.outputs.resourceId] : [],
+  empty(enrichmentServiceAseId) ? [enrichmentApp.outputs.resourceId] : []
 )
 
 var otherPrivateEndpointConnections = (usePrivateEndpoint)
