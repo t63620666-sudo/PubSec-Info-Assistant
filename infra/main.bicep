@@ -1626,6 +1626,16 @@ module enrichmentCosmosDbDataContributorRole 'core/security/documentdb-sql-role.
   }
 }
 
+module enrichmentAcrPullRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: mainResourceGroup
+  name: 'enrichment-acr-pull-role'
+  params: {
+    principalId: enrichmentApp.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.AcrPull
+    principalType: 'ServicePrincipal'
+  }
+}
+
 module docIntelligenceStorageBlobDataReaderRole 'core/security/role.bicep' = if (assignRoles) {
   scope: storageResourceGroup
   name: 'document-intelligence-storage-blob-data-reader-role'
