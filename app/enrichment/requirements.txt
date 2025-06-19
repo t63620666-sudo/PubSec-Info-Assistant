@@ -15,3 +15,8 @@ torch
 torchvision
 torchaudio
 uvicorn==0.31.0
+azure-monitor-opentelemetry==1.6.10
+azure-monitor-opentelemetry-exporter
+opentelemetry-api
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-requests
