@@ -4,11 +4,12 @@ FROM mcr.microsoft.com/devcontainers/python:3.12
 # Set the working directory
 WORKDIR /home/site/wwwroot
 
-# Copy the package.json
-COPY . /home/site/wwwroot
+COPY ./requirements.txt requirements.txt
 
-# Install any needed packages specified in requirements.txt
-RUN pip install -r /home/site/wwwroot/requirements.txt
+RUN pip install -r ./requirements.txt
+
+# Copy the package.json
+COPY . .
 
 # Expose the port the app runs on
 EXPOSE 6000
