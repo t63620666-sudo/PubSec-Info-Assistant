@@ -1770,6 +1770,7 @@ output AZURE_STATUS_LOG_VERSION string = statusLogVersion
 
 output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
 output AZURE_STORAGE_CONTAINER string = storageContainerName
+output AZURE_BLOB_STORAGE_UPLOAD_CONTAINER string = 'upload'
 output AZURE_STORAGE_RESOURCE_GROUP string = storageResourceGroup.name
 
 output AZURE_USE_AUTHENTICATION bool = useAuthentication
