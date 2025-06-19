@@ -839,6 +839,12 @@ module function 'br/public:avm/res/web/site:0.15.1' = {
     vnetRouteAllEnabled: true
     storageAccountResourceId: functionStorage.outputs.id
     storageAccountUseIdentityAuthentication: true
+    logsConfiguration: {
+      applicationLogs: { fileSystem: { level: 'Verbose' } }
+      detailedErrorMessages: { enabled: true }
+      failedRequestsTracing: { enabled: true }
+      httpLogs: { fileSystem: { enabled: true, retentionInDays: 1, retentionInMb: 35 } }
+    }
     // Non-required parameters
     siteConfig: {
       linuxFxVersion: 'DOCKER|${containerRegistry.outputs.loginServer}/function:latest'
@@ -934,6 +940,12 @@ module enrichmentApp 'br/public:avm/res/web/site:0.15.1' = {
     vnetImagePullEnabled: true
     vnetContentShareEnabled: true
     vnetRouteAllEnabled: true
+    logsConfiguration: {
+      applicationLogs: { fileSystem: { level: 'Verbose' } }
+      detailedErrorMessages: { enabled: true }
+      failedRequestsTracing: { enabled: true }
+      httpLogs: { fileSystem: { enabled: true, retentionInDays: 1, retentionInMb: 35 } }
+    }
     // Non-required parameters
     siteConfig: {
       linuxFxVersion: 'DOCKER|${containerRegistry.outputs.loginServer}/enrichment:latest'
