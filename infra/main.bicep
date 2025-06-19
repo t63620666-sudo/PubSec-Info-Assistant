@@ -644,6 +644,9 @@ module documentIntelligence 'br/public:avm/res/cognitive-services/account:0.7.2'
       ? documentIntelligenceServiceName
       : '${abbrs.cognitiveServicesDocumentIntelligence}${resourceToken}'
     publicNetworkAccess: !empty(ipRules) ? 'Enabled' : publicNetworkAccess
+    managedIdentities: {
+      systemAssigned: true
+    }
     networkAcls: {
       defaultAction: 'Deny'
       bypass: bypass
