@@ -862,6 +862,9 @@ module function 'br/public:avm/res/web/site:0.15.1' = {
       AzureFunctionsJobHost__logging__logLevel__default: 'Trace'
       FUNCTIONS_EXTENSION_VERSION: '~4'
       FUNCTIONS_WORKER_RUNTIME: 'python'
+      AzureStorageConnection1__blobServiceUri: storage.outputs.primaryEndpoints.blob
+      AzureStorageConnection1__queueServiceUri: storage.outputs.primaryEndpoints.queue
+      AzureStorageConnection1__tableServiceUri: storage.outputs.primaryEndpoints.table
       BLOB_STORAGE_ACCOUNT: storage.outputs.name
       BLOB_STORAGE_ACCOUNT_ENDPOINT: storage.outputs.primaryEndpoints.blob
       BLOB_STORAGE_ACCOUNT_OUTPUT_CONTAINER_NAME: storageContainerName
