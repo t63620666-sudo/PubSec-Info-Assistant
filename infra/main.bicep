@@ -727,7 +727,7 @@ var appEnvVariables = {
   AZURE_SUBSCRIPTION_ID: subscription().subscriptionId
   CHAT_WARNING_BANNER_TEXT: chatWarningBannerText
   TARGET_EMBEDDINGS_MODEL: 'azure-openai_${embedding.deploymentName}'
-  ENRICHMENT_APPSERVICE_URL: enrichmentApp.outputs.defaultHostname
+  ENRICHMENT_APPSERVICE_URL: 'https://${enrichmentApp.outputs.defaultHostname}'
   AZURE_AI_ENDPOINT: cognitiveServices.outputs.endpoint
   AZURE_AI_LOCATION: cognitiveServices.outputs.location
   APPLICATION_TITLE: empty(applicationTitle) ? 'Information Assistant, built with Azure OpenAI' : applicationTitle
@@ -1739,6 +1739,8 @@ output AZURE_SUBSCRIPTION_ID string = subscription().subscriptionId
 output AZURE_AUTH_TENANT_ID string = authTenantId
 output AZURE_RESOURCE_GROUP string = mainResourceGroup.name
 
+output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
+
 output AZURE_BLOB_STORAGE_ACCOUNT string = storage.outputs.name
 output AZURE_BLOB_STORAGE_ENDPOINT string = storage.outputs.primaryEndpoints.blob
 
@@ -1793,6 +1795,6 @@ output AZURE_CONTAINER_REGISTRY_NAME string = containerRegistry.outputs.name
 output AZURE_WEBAPP_SERVICE_NAME string = deploymentTarget == 'appservice' ? webapp.outputs.name : ''
 output AZURE_FUNCTION_SERVICE_NAME string = function.outputs.name
 output AZURE_ENRICHMENT_SERVICE_NAME string = enrichmentApp.outputs.name
-output ENRICHMENT_APPSERVICE_URL string = enrichmentApp.outputs.defaultHostname
+output ENRICHMENT_APPSERVICE_URL string = 'https://${enrichmentApp.outputs.defaultHostname}'
 
 output AZURE_AI_ENDPOINT string = cognitiveServices.outputs.endpoint

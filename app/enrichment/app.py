@@ -94,10 +94,12 @@ openai.api_version = "2024-02-01"
 # the problematic credential by using a parameter (ex. exclude_shared_token_cache_credential=True)
 if ENV["LOCAL_DEBUG"] == "true":
     azure_credential = DefaultAzureCredential(authority=AUTHORITY)
-else:
+elif os.getenv("AZURE_CLIENT_ID"):
     azure_credential = ManagedIdentityCredential(
         client_id=os.environ["AZURE_CLIENT_ID"], authority=AUTHORITY
     )
+else:
+    azure_credential = ManagedIdentityCredential(authority=AUTHORITY)
 # Comment these two lines out if using keys, set your API key in the OPENAI_API_KEY environment variable instead
 openai.api_type = "azure_ad"
 token_provider = get_bearer_token_provider(azure_credential,
