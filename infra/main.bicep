@@ -1290,9 +1290,9 @@ module queueDataMessageSenderRoleUser 'core/security/role.bicep' = if (assignRol
 }
 
 // SYSTEM IDENTITIES
-module openAiRoleBackend 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+module webappCognitiveServicesOpenAIUserRole 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
   scope: openAiResourceGroup
-  name: 'openai-role-backend'
+  name: 'webapp-cognitive-services-openai-user-role'
   params: {
     principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
     roleDefinitionId: roles.CognitiveServicesOpenAIUser
@@ -1300,29 +1300,19 @@ module openAiRoleBackend 'core/security/role.bicep' = if (isAzureOpenAiHost && a
   }
 }
 
-module openAiRoleFunction 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
-  scope: openAiResourceGroup
-  name: 'openai-role-function'
+module webappCognitiveServicesUserRole 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: cognitiveServiceResourceGroup
+  name: 'webapp-cognitive-services-user-role'
   params: {
-    principalId: function.outputs.?systemAssignedMIPrincipalId
-    roleDefinitionId: roles.CognitiveServicesOpenAIUser
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    roleDefinitionId: roles.CognitiveServicesUser
     principalType: 'ServicePrincipal'
   }
 }
 
-module openAiRoleSearchService 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
-  scope: openAiResourceGroup
-  name: 'openai-role-searchservice'
-  params: {
-    principalId: searchService.outputs.principalId
-    roleDefinitionId: roles.CognitiveServicesOpenAIUser
-    principalType: 'ServicePrincipal'
-  }
-}
-
-module storageRoleBackend 'core/security/role.bicep' = if (assignRoles) {
+module webappStorageBlobDataReaderRole 'core/security/role.bicep' = if (assignRoles) {
   scope: storageResourceGroup
-  name: 'storage-role-backend'
+  name: 'webapp-storage-blob-data-reader-role'
   params: {
     principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
     roleDefinitionId: roles.StorageBlobDataReader
@@ -1330,99 +1320,19 @@ module storageRoleBackend 'core/security/role.bicep' = if (assignRoles) {
   }
 }
 
-module storageContribRoleBackend 'core/security/role.bicep' = if (assignRoles) {
+module webappStorageBlobDataContributorRole 'core/security/role.bicep' = if (assignRoles) {
   scope: storageResourceGroup
-  name: 'storage-contrib-role-backend'
+  name: 'webapp-storage-contrib-role'
   params: {
     principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
-    roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
-    principalType: 'ServicePrincipal'
-  }
-}
-
-module storageContribRoleDiag 'core/security/role.bicep' = if (assignRoles) {
-  scope: storageResourceGroup
-  name: 'storage-contrib-role-diag'
-  params: {
-    principalId: '47a8880e-8e60-4153-9e25-fa98482bae5d'
-    roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
-    principalType: 'ServicePrincipal'
-  }
-}
-
-module storageRoleFunction 'core/security/role.bicep' = if (assignRoles) {
-  scope: storageResourceGroup
-  name: 'storage-blob-reader-role-function'
-  params: {
-    principalId: function.outputs.systemAssignedMIPrincipalId
-    roleDefinitionId: roles.StorageBlobDataReader
-    principalType: 'ServicePrincipal'
-  }
-}
-
-module storageContribRoleFunction 'core/security/role.bicep' = if (assignRoles) {
-  scope: storageResourceGroup
-  name: 'storage-blob-contrib-role-function'
-  params: {
-    principalId: function.outputs.systemAssignedMIPrincipalId
     roleDefinitionId: roles.StorageBlobDataContributor
     principalType: 'ServicePrincipal'
   }
 }
 
-module storageAccountContributorRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+module webappStorageQueueMessageSenderRole 'core/security/role.bicep' = if (assignRoles) {
   scope: storageResourceGroup
-  name: 'storage-acc-contrib-role-function'
-  params: {
-    principalId: function.outputs.systemAssignedMIPrincipalId
-    roleDefinitionId: roles.StorageAccountContributor
-    principalType: 'ServicePrincipal'
-  }
-}
-
-module storageQueueContributorRoleFunction 'core/security/role.bicep' = if (assignRoles) {
-  scope: storageResourceGroup
-  name: 'storage-queue-contrib-role-function'
-  params: {
-    principalId: function.outputs.systemAssignedMIPrincipalId
-    roleDefinitionId: roles.StorageQueueDataContributor
-    principalType: 'ServicePrincipal'
-  }
-}
-
-module storageQueueDataReaderRoleFunction 'core/security/role.bicep' = if (assignRoles) {
-  scope: storageResourceGroup
-  name: 'storage-queue-data-reader-role-function'
-  params: {
-    principalId: function.outputs.systemAssignedMIPrincipalId
-    roleDefinitionId: roles.StorageQueueDataReader
-    principalType: 'ServicePrincipal'
-  }
-}
-
-module storageQueueMessageProcRoleFunction 'core/security/role.bicep' = if (assignRoles) {
-  scope: storageResourceGroup
-  name: 'storage-queue-message-proc-role-function'
-  params: {
-    principalId: function.outputs.systemAssignedMIPrincipalId
-    roleDefinitionId: roles.StorageQueueDataMessageProcessor
-    principalType: 'ServicePrincipal'
-  }
-}
-
-module storageQueueMessageSenderRoleFunction 'core/security/role.bicep' = if (assignRoles) {
-  scope: storageResourceGroup
-  name: 'storage-queue-message-sender-role-function'
-  params: {
-    principalId: function.outputs.systemAssignedMIPrincipalId
-    roleDefinitionId: roles.StorageQueueDataMessageSender
-    principalType: 'ServicePrincipal'
-  }
-}
-
-module storageQueueMessageSenderRoleBackend 'core/security/role.bicep' = if (assignRoles) {
-  scope: storageResourceGroup
-  name: 'storage-queue-message-sender-role-backend'
+  name: 'webapp-storage-queue-message-sender-role'
   params: {
     principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
     roleDefinitionId: roles.StorageQueueDataMessageSender
@@ -1430,19 +1340,9 @@ module storageQueueMessageSenderRoleBackend 'core/security/role.bicep' = if (ass
   }
 }
 
-module containerRegistryRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+module webappAcrPullRole 'core/security/role.bicep' = if (assignRoles) {
   scope: mainResourceGroup
-  name: 'container-registry-role-function'
-  params: {
-    principalId: function.outputs.systemAssignedMIPrincipalId
-    roleDefinitionId: roles.AcrPull
-    principalType: 'ServicePrincipal'
-  }
-}
-
-module containerRegistryRoleBackend 'core/security/role.bicep' = if (assignRoles) {
-  scope: mainResourceGroup
-  name: 'container-registry-role-backend'
+  name: 'webapp-acr-pull-role'
   params: {
     principalId: webapp.outputs.identityPrincipalId
     roleDefinitionId: roles.AcrPull
@@ -1450,9 +1350,9 @@ module containerRegistryRoleBackend 'core/security/role.bicep' = if (assignRoles
   }
 }
 
-module storageOwnerRoleBackend 'core/security/role.bicep' = if (assignRoles) {
+module webappStorageBlobDataOwnerRole 'core/security/role.bicep' = if (assignRoles) {
   scope: storageResourceGroup
-  name: 'storage-owner-role-backend'
+  name: 'webapp-storage-blob-data-owner-role'
   params: {
     principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
     roleDefinitionId: roles.StorageBlobDataOwner
@@ -1460,41 +1360,170 @@ module storageOwnerRoleBackend 'core/security/role.bicep' = if (assignRoles) {
   }
 }
 
-module storageOwnerRoleFunction 'core/security/role.bicep' = if (assignRoles) {
-  scope: storageResourceGroup
-  name: 'storage-owner-role-function'
+module webappSearchIndexDataReaderRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: searchServiceResourceGroup
+  name: 'webapp-search-index-data-reader-role'
   params: {
-    principalId: function.outputs.systemAssignedMIPrincipalId
-    roleDefinitionId: roles.StorageBlobDataOwner
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    roleDefinitionId: roles.SearchIndexDataReader
     principalType: 'ServicePrincipal'
   }
 }
 
-module storageRoleSearchService 'core/security/role.bicep' = if (assignRoles) {
-  scope: storageResourceGroup
-  name: 'storage-role-searchservice'
+module webappCognitiveServicesLanguageReaderRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: cognitiveServiceResourceGroup
+  name: 'webapp-cognitive-services-language-reader-role'
   params: {
-    principalId: searchService.outputs.principalId
+    principalId: webapp.outputs.identityPrincipalId
+    roleDefinitionId: roles.CognitiveServicesLanguageReader
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module webappReaderRole 'core/security/role.bicep' = if (useAuthentication && assignRoles) {
+  scope: searchServiceResourceGroup
+  name: 'webapp-reader-role'
+  params: {
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    roleDefinitionId: roles.Reader
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module webappSearchIndexDataContributorRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: searchServiceResourceGroup
+  name: 'webapp-search-index-data-contributor-role'
+  params: {
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    roleDefinitionId: roles.SearchIndexDataContributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module webappCosmosDbDataContributorRole 'core/security/documentdb-sql-role.bicep' = if (assignRoles) {
+  scope: cosmosDbResourceGroup
+  name: 'webapp-cosmosdb-data-contributor-role'
+  params: {
+    databaseAccountName: cosmosDb.outputs.name
+    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
+    // Cosmos DB Built-in Data Contributor role
+    roleDefinitionId: '/${subscription().id}/resourceGroups/${cosmosDb.outputs.resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDb.outputs.name}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+  }
+}
+
+module functionCognitiveServicesOpenAIUserRole 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: openAiResourceGroup
+  name: 'function-cognitive-services-openai-user-role'
+  params: {
+    principalId: function.outputs.?systemAssignedMIPrincipalId
+    roleDefinitionId: roles.CognitiveServicesOpenAIUser
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module functionCognitiveServicesUserRole 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: cognitiveServiceResourceGroup
+  name: 'function-cognitive-services-user-role'
+  params: {
+    principalId: function.outputs.?systemAssignedMIPrincipalId
+    roleDefinitionId: roles.CognitiveServicesUser
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module functionStorageBlobDataReaderRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'function-storage-blob-data-reader-role'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
     roleDefinitionId: roles.StorageBlobDataReader
     principalType: 'ServicePrincipal'
   }
 }
 
-// Used to issue search queries
-// https://learn.microsoft.com/azure/search/search-security-rbac
-module searchRoleBackend 'core/security/role.bicep' = if (assignRoles) {
-  scope: searchServiceResourceGroup
-  name: 'search-role-backend'
+module functionStorageBlobDataContributorRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'function-storage-blob-data-contributor-role'
   params: {
-    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
-    roleDefinitionId: roles.SearchIndexDataReader
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageBlobDataContributor
     principalType: 'ServicePrincipal'
   }
 }
 
-module searchRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+module functionStorageAccountContributorRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'function-storage-account-contributor-role'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageAccountContributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module functionStorageQueueContributorRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'function-storage-queue-contributor-role'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageQueueDataContributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module functionStorageQueueDataReaderRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'function-storage-queue-data-reader-role'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageQueueDataReader
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module functionStorageQueueDataMessageProcessorRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'function-storage-queue-data-message-processor-role'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageQueueDataMessageProcessor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module functionStorageQueueDataMessageSenderRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'function-storage-queue-data-message-sender-role'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageQueueDataMessageSender
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module functionAcrPullRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: mainResourceGroup
+  name: 'function-acr-pull-role'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.AcrPull
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module functionStorageBlobDataOwnerRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'function-storage-blob-data-owner-role'
+  params: {
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageBlobDataOwner
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module functionSearchIndexDataReaderRole 'core/security/role.bicep' = if (assignRoles) {
   scope: searchServiceResourceGroup
-  name: 'search-role-function'
+  name: 'function-search-index-data-reader-role'
   params: {
     principalId: function.outputs.systemAssignedMIPrincipalId
     roleDefinitionId: roles.SearchIndexDataReader
@@ -1502,9 +1531,9 @@ module searchRoleFunction 'core/security/role.bicep' = if (assignRoles) {
   }
 }
 
-module searchSvcContribRoleFunction 'core/security/role.bicep' = if (assignRoles) {
+module functionSearchServiceContributorRole 'core/security/role.bicep' = if (assignRoles) {
   scope: searchServiceResourceGroup
-  name: 'search-svccontrib-role-function'
+  name: 'function-search-service-contributor-role'
   params: {
     principalId: function.outputs.systemAssignedMIPrincipalId
     roleDefinitionId: roles.SearchServiceContributor
@@ -1512,22 +1541,19 @@ module searchSvcContribRoleFunction 'core/security/role.bicep' = if (assignRoles
   }
 }
 
-// RBAC for Cosmos DB
-// https://learn.microsoft.com/azure/cosmos-db/nosql/security/how-to-grant-data-plane-role-based-access
-module cosmosDbRoleBackend 'core/security/documentdb-sql-role.bicep' = if (assignRoles) {
-  scope: cosmosDbResourceGroup
-  name: 'cosmosdb-role-backend'
+module functionSearchIndexDataContributorRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: searchServiceResourceGroup
+  name: 'function-search-index-data-contributor-role'
   params: {
-    databaseAccountName: cosmosDb.outputs.name
-    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
-    // Cosmos DB Built-in Data Contributor role
-    roleDefinitionId: '/${subscription().id}/resourceGroups/${cosmosDb.outputs.resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDb.outputs.name}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+    principalId: function.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.SearchIndexDataContributor
+    principalType: 'ServicePrincipal'
   }
 }
 
-module cosmosDbRoleFunction 'core/security/documentdb-sql-role.bicep' = if (assignRoles) {
+module functionCosmosDbDataContributorRole 'core/security/documentdb-sql-role.bicep' = if (assignRoles) {
   scope: cosmosDbResourceGroup
-  name: 'cosmosdb-role-function'
+  name: 'function-cosmosdb-data-contributor-role'
   params: {
     databaseAccountName: cosmosDb.outputs.name
     principalId: function.outputs.systemAssignedMIPrincipalId
@@ -1536,22 +1562,100 @@ module cosmosDbRoleFunction 'core/security/documentdb-sql-role.bicep' = if (assi
   }
 }
 
-module cosmosDbRoleOpenAi 'core/security/documentdb-sql-role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+module enrichmentCognitiveServicesOpenAIUserRole 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: openAiResourceGroup
+  name: 'enrichment-cognitive-services-openai-user-role'
+  params: {
+    principalId: enrichmentApp.outputs.?systemAssignedMIPrincipalId
+    roleDefinitionId: roles.CognitiveServicesOpenAIUser
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module enrichmentStorageQueueDataContributorRole 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: storageResourceGroup
+  name: 'enrichment-storage-queue-data-contributor-role'
+  params: {
+    principalId: enrichmentApp.outputs.?systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageQueueDataContributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module enrichmentStorageBlobDataOwnerRole 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: storageResourceGroup
+  name: 'enrichment-storage-blob-data-owner-role'
+  params: {
+    principalId: enrichmentApp.outputs.?systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageBlobDataOwner
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module enrichmentCognitiveServicesUserRole 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: cognitiveServiceResourceGroup
+  name: 'enrichment-cognitive-services-user-role'
+  params: {
+    principalId: enrichmentApp.outputs.?systemAssignedMIPrincipalId
+    roleDefinitionId: roles.CognitiveServicesUser
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module enrichmentSearchIndexDataContributorRole 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: searchServiceResourceGroup
+  name: 'enrichment-search-index-data-contributor-role'
+  params: {
+    principalId: enrichmentApp.outputs.?systemAssignedMIPrincipalId
+    roleDefinitionId: roles.SearchIndexDataContributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module enrichmentCosmosDbDataContributorRole 'core/security/documentdb-sql-role.bicep' = if (assignRoles) {
   scope: cosmosDbResourceGroup
-  name: 'cosmosdb-role-openai'
+  name: 'enrichment-cosmosdb-data-contributor-role'
   params: {
     databaseAccountName: cosmosDb.outputs.name
-    principalId: deployAzureOpenAi
-      ? openAi.outputs.systemAssignedMIPrincipalId
-      : existingOpenAiManagedIdentityPrincipalId
+    principalId: enrichmentApp.outputs.systemAssignedMIPrincipalId
     // Cosmos DB Built-in Data Contributor role
     roleDefinitionId: '/${subscription().id}/resourceGroups/${cosmosDb.outputs.resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDb.outputs.name}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
   }
 }
 
-module cosmosDbReaderRoleSearch 'core/security/documentdb-sql-role.bicep' = if (assignRoles) {
+module docIntelligenceStorageBlobDataReaderRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'document-intelligence-storage-blob-data-reader-role'
+  params: {
+    principalId: documentIntelligence.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageBlobDataReader
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module searchServiceStorageBlobDataReaderRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'searchservice-storage-blob-data-reader-role'
+  params: {
+    principalId: searchService.outputs.principalId
+    roleDefinitionId: roles.StorageBlobDataReader
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module searchServiceCognitiveServicesOpenAIUserRole 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: openAiResourceGroup
+  name: 'searchservice-cognitive-services-openai-user-role'
+  params: {
+    principalId: searchService.outputs.principalId
+    roleDefinitionId: roles.CognitiveServicesOpenAIUser
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module searchServiceCosmosDbDataReaderRole 'core/security/documentdb-sql-role.bicep' = if (assignRoles) {
   scope: cosmosDbResourceGroup
-  name: 'cosmosdb-reader-role-search'
+  name: 'searchservice-cosmosdb-data-reader-role'
   params: {
     databaseAccountName: cosmosDb.outputs.name
     principalId: searchService.outputs.principalId
@@ -1560,9 +1664,9 @@ module cosmosDbReaderRoleSearch 'core/security/documentdb-sql-role.bicep' = if (
   }
 }
 
-module cosmosDbRoleSearch 'core/security/documentdb-sql-role.bicep' = if (assignRoles) {
+module searchServiceCosmosDbDataContributorRole 'core/security/documentdb-sql-role.bicep' = if (assignRoles) {
   scope: cosmosDbResourceGroup
-  name: 'cosmosdb-role-search'
+  name: 'searchservice-cosmosdb-data-contributor-role'
   params: {
     databaseAccountName: cosmosDb.outputs.name
     principalId: searchService.outputs.principalId
@@ -1571,9 +1675,9 @@ module cosmosDbRoleSearch 'core/security/documentdb-sql-role.bicep' = if (assign
   }
 }
 
-module cosmosAccountReaderRoleSearch 'core/security/role.bicep' = if (assignRoles) {
+module searchServiceCosmosDBAccountReaderRoleRole 'core/security/role.bicep' = if (assignRoles) {
   scope: searchServiceResourceGroup
-  name: 'cosmos-acc-reader-role-search'
+  name: 'searchservice-cosmosdb-account-reader-role'
   params: {
     principalId: searchService.outputs.principalId
     roleDefinitionId: roles.CosmosDBAccountReaderRole
@@ -1581,47 +1685,37 @@ module cosmosAccountReaderRoleSearch 'core/security/role.bicep' = if (assignRole
   }
 }
 
-// Used to read index definitions (required when using authentication)
-// https://learn.microsoft.com/azure/search/search-security-rbac
-module searchReaderRoleBackend 'core/security/role.bicep' = if (useAuthentication && assignRoles) {
-  scope: searchServiceResourceGroup
-  name: 'search-reader-role-backend'
+module diagStorageBlobDataContributorRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'diag-storage-blob-data-contributor-role'
   params: {
-    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
-    roleDefinitionId: roles.Reader
+    principalId: '47a8880e-8e60-4153-9e25-fa98482bae5d'
+    roleDefinitionId: roles.StorageBlobDataContributor
     principalType: 'ServicePrincipal'
   }
 }
 
-// Used to add/remove documents from index (required for user upload feature)
-module searchContribRoleBackend 'core/security/role.bicep' = if (assignRoles) {
-  scope: searchServiceResourceGroup
-  name: 'search-contrib-role-backend'
+module openAiCosmosDbDataContributorRole 'core/security/documentdb-sql-role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+  scope: cosmosDbResourceGroup
+  name: 'openai-cosmosdb-data-contributor-role'
   params: {
-    principalId: (deploymentTarget == 'appservice') ? webapp.outputs.identityPrincipalId : ''
-    roleDefinitionId: roles.SearchIndexDataContributor
-    principalType: 'ServicePrincipal'
+    databaseAccountName: cosmosDb.outputs.name
+    principalId: deployAzureOpenAi
+      ? openAi.outputs.systemAssignedMIPrincipalId
+      : existingOpenAiManagedIdentityPrincipalId
+    // Cosmos DB Built-in Data Contributor role
+    roleDefinitionId: '/${subscription().id}/resourceGroups/${cosmosDb.outputs.resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDb.outputs.name}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
   }
 }
 
-module searchContribRoleOpenAi 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
+module openAiSearchIndexDataContributorRole 'core/security/role.bicep' = if (isAzureOpenAiHost && assignRoles) {
   scope: searchServiceResourceGroup
-  name: 'search-contrib-role-openai'
+  name: 'openai-search-index-data-contributor-role'
   params: {
     principalId: deployAzureOpenAi
       ? openAi.outputs.systemAssignedMIPrincipalId
       : existingOpenAiManagedIdentityPrincipalId
     roleDefinitionId: roles.SearchIndexDataContributor
-    principalType: 'ServicePrincipal'
-  }
-}
-
-module languageReaderRoleBackend 'core/security/role.bicep' = if (assignRoles) {
-  scope: mainResourceGroup
-  name: 'language-reader-role-backend'
-  params: {
-    principalId: webapp.outputs.identityPrincipalId
-    roleDefinitionId: roles.CognitiveServicesLanguageReader
     principalType: 'ServicePrincipal'
   }
 }
