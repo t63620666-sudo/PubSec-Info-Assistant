@@ -1604,6 +1604,16 @@ module searchContribRoleOpenAi 'core/security/role.bicep' = if (isAzureOpenAiHos
   }
 }
 
+module languageReaderRoleBackend 'core/security/role.bicep' = if (assignRoles) {
+  scope: mainResourceGroup
+  name: 'language-reader-role-backend'
+  params: {
+    principalId: webapp.outputs.identityPrincipalId
+    roleDefinitionId: roles.CognitiveServicesLanguageReader
+    principalType: 'ServicePrincipal'
+  }
+}
+
 output AZURE_LOCATION string = location
 output AZURE_TENANT_ID string = tenantId
 output AZURE_SUBSCRIPTION_ID string = subscription().subscriptionId
