@@ -112,7 +112,7 @@ for key, value in ENV.items():
 
 str_to_bool = {'true': True, 'false': False}
 
-log = logging.getLogger("uvicorn")
+log = logging.getLogger(__name__)
 log.setLevel(ENV["LOG_LEVEL"])
 log.propagate = True
 
