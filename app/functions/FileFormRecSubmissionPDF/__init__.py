@@ -51,9 +51,15 @@ else:
 # the problematic credential by using a parameter (ex. exclude_shared_token_cache_credential=True)
 if local_debug == "true":
     azure_credential = DefaultAzureCredential(authority=AUTHORITY)
+elif os.getenv("AZURE_CLIENT_ID"):
+    azure_credential = ManagedIdentityCredential(
+        client_id=os.environ["AZURE_CLIENT_ID"], authority=AUTHORITY
+    )
 else:
     azure_credential = ManagedIdentityCredential(authority=AUTHORITY)
-token_provider = get_bearer_token_provider(azure_credential, f'https://{os.environ["AZURE_AI_CREDENTIAL_DOMAIN"]}/.default')
+
+token_provider = get_bearer_token_provider(
+    azure_credential, f'https://{os.environ["AZURE_AI_CREDENTIAL_DOMAIN"]}/.default')
 
 utilities = Utilities(
     azure_blob_storage_account,
@@ -62,6 +68,7 @@ utilities = Utilities(
     azure_blob_content_storage_container,
     azure_credential,
 )
+
 
 def main(msg: func.QueueMessage) -> None:
     '''This function is triggered by a message in the pdf-submit-queue.
@@ -89,7 +96,7 @@ def main(msg: func.QueueMessage) -> None:
             f"{FUNCTION_NAME} - Submitting to Form Recognizer",
             StatusClassification.INFO,
         )
-        
+
         # construct blob url
         blob_path_plus_sas = utilities.get_blob_and_sas(blob_path)
         statusLog.upsert_document(
@@ -112,7 +119,8 @@ def main(msg: func.QueueMessage) -> None:
         logging.info(f"Submitting to FR with url: {url}")
 
         # Send the HTTP POST request with headers, query parameters, and request body
-        response = requests.post(url, headers=headers, params=params, json=body)
+        response = requests.post(url, headers=headers,
+                                 params=params, json=body)
 
         # Check if the request was successful (status code 200)
         if response.status_code == 202:
@@ -126,9 +134,9 @@ def main(msg: func.QueueMessage) -> None:
             message_json["FR_resultId"] = result_id
             message_json["polling_queue_count"] = 1
             queue_client = QueueClient(account_url=azure_queue_storage_endpoint,
-                               queue_name=pdf_polling_queue,
-                               credential=azure_credential,
-                               message_encode_policy=TextBase64EncodePolicy())
+                                       queue_name=pdf_polling_queue,
+                                       credential=azure_credential,
+                                       message_encode_policy=TextBase64EncodePolicy())
             message_json_str = json.dumps(message_json)
             queue_client.send_message(
                 message_json_str, visibility_timeout=poll_queue_submit_backoff
@@ -156,11 +164,12 @@ def main(msg: func.QueueMessage) -> None:
                     StatusClassification.DEBUG,
                 )
                 queue_client = QueueClient(account_url=azure_queue_storage_endpoint,
-                               queue_name=pdf_submit_queue,
-                               credential=azure_credential,
-                               message_encode_policy=TextBase64EncodePolicy())
+                                           queue_name=pdf_submit_queue,
+                                           credential=azure_credential,
+                                           message_encode_policy=TextBase64EncodePolicy())
                 message_json_str = json.dumps(message_json)
-                queue_client.send_message(message_json_str, visibility_timeout=backoff)
+                queue_client.send_message(
+                    message_json_str, visibility_timeout=backoff)
                 statusLog.upsert_document(
                     blob_path,
                     f"{FUNCTION_NAME} - message sent to pdf-submit-queue. Visible in {backoff} seconds.",
@@ -191,5 +200,5 @@ def main(msg: func.QueueMessage) -> None:
             StatusClassification.ERROR,
             State.ERROR,
         )
-        
+
     statusLog.save_document(blob_path)

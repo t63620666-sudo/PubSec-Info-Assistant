@@ -51,6 +51,10 @@ else:
     AUTHORITY = AzureAuthorityHosts.AZURE_PUBLIC_CLOUD
 if local_debug:
     azure_credential = DefaultAzureCredential(authority=AUTHORITY)
+elif os.getenv("AZURE_CLIENT_ID"):
+    azure_credential = ManagedIdentityCredential(
+        client_id=os.environ["AZURE_CLIENT_ID"], authority=AUTHORITY
+    )
 else:
     azure_credential = ManagedIdentityCredential(authority=AUTHORITY)
 token_provider = get_bearer_token_provider(azure_credential,
@@ -60,11 +64,11 @@ token_provider = get_bearer_token_provider(azure_credential,
 targetTranslationLanguage = os.environ["TARGET_TRANSLATION_LANGUAGE"]
 
 API_DETECT_ENDPOINT = (
-        f"{azure_ai_endpoint}language/:analyze-text?api-version=2023-04-01"
-    )
+    f"{azure_ai_endpoint}language/:analyze-text?api-version=2023-04-01"
+)
 API_TRANSLATE_ENDPOINT = (
-        f"{azure_ai_endpoint}translator/text/v3.0/translate?api-version=3.0"
-    )
+    f"{azure_ai_endpoint}translator/text/v3.0/translate?api-version=3.0"
+)
 
 MAX_CHARS_FOR_DETECTION = 1000
 translator_api_headers = {
@@ -113,23 +117,25 @@ utilities = Utilities(
 def detect_language(text):
     data = {
         "kind": "LanguageDetection",
-        "analysisInput":{
-            "documents":[
+        "analysisInput": {
+            "documents": [
                 {
-                    "id":"1",
+                    "id": "1",
                     "text": text[:MAX_CHARS_FOR_DETECTION]
                 }
             ]
         }
-    } 
+    }
 
     response = requests.post(
         API_DETECT_ENDPOINT, headers=translator_api_headers, json=data
     )
     if response.status_code == 200:
         print(response.json())
-        detected_language = response.json()["results"]["documents"][0]["detectedLanguage"]["iso6391Name"]
-        detection_confidence = response.json()["results"]["documents"][0]["detectedLanguage"]["confidenceScore"]
+        detected_language = response.json(
+        )["results"]["documents"][0]["detectedLanguage"]["iso6391Name"]
+        detection_confidence = response.json(
+        )["results"]["documents"][0]["detectedLanguage"]["confidenceScore"]
 
     return detected_language, detection_confidence
 
@@ -179,15 +185,15 @@ def main(msg: func.QueueMessage) -> None:
         path = blob_path.split("/", 1)[1]
 
         blob_service_client = BlobServiceClient(account_url=azure_blob_storage_endpoint,
-                                                    credential=azure_credential)
+                                                credential=azure_credential)
         blob_client = blob_service_client.get_blob_client(container=azure_blob_drop_storage_container,
-                                                              blob=path)
+                                                          blob=path)
         image_data = blob_client.download_blob().readall()
         files = {"file": image_data}
-        response = requests.post(VISION_ENDPOINT, 
-                                 headers=vision_api_headers, 
+        response = requests.post(VISION_ENDPOINT,
+                                 headers=vision_api_headers,
                                  data=image_data)
-    
+
         if response.status_code == 200:
             result = response.json()
             text_image_summary = ""
@@ -200,7 +206,8 @@ def main(msg: func.QueueMessage) -> None:
                     text_image_summary += "\t'{}', Confidence {:.4f}\n".format(
                         result["captionResult"]["text"], result["captionResult"]["confidence"]
                     )
-                    index_content += "Caption: {}\n ".format(result["captionResult"]["text"])
+                    index_content += "Caption: {}\n ".format(
+                        result["captionResult"]["text"])
 
                 if result["denseCaptionsResult"] is not None:
                     text_image_summary += "Dense Captions:\n"
@@ -235,7 +242,7 @@ def main(msg: func.QueueMessage) -> None:
                     complete_ocr_text += "{}\n".format(line["content"])
                 text_image_summary += complete_ocr_text
 
-        else: 
+        else:
             logging.error("%s - Image analysis failed for %s: %s",
                           FUNCTION_NAME,
                           blob_path,
