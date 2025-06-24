@@ -188,7 +188,7 @@ def main(msg: func.QueueMessage) -> None:
             # general error occurred
             statusLog.upsert_document(
                 blob_path,
-                f"{FUNCTION_NAME} - Error on PDF submission to FR - {response.status_code} - {response.reason}",
+                f"{FUNCTION_NAME} - Error on PDF submission to FR - {response.status_code} - {response.reason} - {response.text}",
                 StatusClassification.ERROR,
                 State.ERROR,
             )

@@ -350,7 +350,7 @@ module storage 'core/storage/storage-account.bicep' = {
     name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
     location: storageResourceGroupLocation
     tags: tags
-    publicNetworkAccess: !empty(ipRules) ? 'Enabled' : publicNetworkAccess
+    publicNetworkAccess: 'Enabled'
     networkAcls: {
       bypass: bypass
       defaultAction: 'Deny'
@@ -360,7 +360,7 @@ module storage 'core/storage/storage-account.bicep' = {
       })
     }
     allowBlobPublicAccess: false
-    allowSharedKeyAccess: false
+    allowSharedKeyAccess: true
     sku: {
       name: storageSkuName
     }
@@ -1646,6 +1646,16 @@ module docIntelligenceStorageBlobDataReaderRole 'core/security/role.bicep' = if 
   params: {
     principalId: documentIntelligence.outputs.systemAssignedMIPrincipalId
     roleDefinitionId: roles.StorageBlobDataReader
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module docIntelligenceStorageBlobDataContributorRole 'core/security/role.bicep' = if (assignRoles) {
+  scope: storageResourceGroup
+  name: 'document-intelligence-storage-blob-data-contributor-role'
+  params: {
+    principalId: documentIntelligence.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: roles.StorageBlobDataContributor
     principalType: 'ServicePrincipal'
   }
 }

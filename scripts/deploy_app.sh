@@ -9,7 +9,7 @@ fi
 
 if [ "$deploy_component" != "function" ] && [ "$deploy_component" != "webapp" ] && [ "$deploy_component" != "enrichment" ] && [ "$deploy_component" != "all" ]; then
     echo "Invalid component: $deploy_component"
-    echo "Available components: function, webapp, all"
+    echo "Available components: function, webapp, enrichment, all"
     exit 1
 fi
 

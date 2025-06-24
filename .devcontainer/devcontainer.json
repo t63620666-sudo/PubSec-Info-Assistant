@@ -70,7 +70,8 @@
 				"HashiCorp.terraform",
 				"mhutchie.git-graph",
 				"esbenp.prettier-vscode",
-				"mutantdino.resourcemonitor"
+				"mutantdino.resourcemonitor",
+				"Azurite.azurite"
 			]
 		}
 	},
