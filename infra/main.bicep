@@ -723,7 +723,7 @@ var appEnvVariables = {
   AZURE_OPENAI_EMBEDDINGS_MODEL_VERSION: embedding.deploymentVersion
   COSMOSDB_URL: cosmosDb.outputs.endpoint
   COSMOSDB_LOG_DATABASE_NAME: statusLogDatabaseName
-  COSMOSDB_LOG_CONTAINER_NAME: statusLogDatabaseName
+  COSMOSDB_LOG_CONTAINER_NAME: statusLogContainerName
   QUERY_TERM_LANGUAGE: searchQueryLanguage
   AZURE_SUBSCRIPTION_ID: subscription().subscriptionId
   CHAT_WARNING_BANNER_TEXT: chatWarningBannerText
