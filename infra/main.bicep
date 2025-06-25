@@ -656,6 +656,7 @@ module documentIntelligence 'br/public:avm/res/cognitive-services/account:0.7.2'
     disableLocalAuth: true
     tags: tags
     sku: documentIntelligenceSkuName
+    restrictOutboundNetworkAccess: false
   }
 }
 
