@@ -863,52 +863,53 @@ module function 'br/public:avm/res/web/site:0.15.1' = {
       acrUseManagedIdentityCreds: true
     }
     appSettingsKeyValuePairs: {
+      AZURE_AI_CREDENTIAL_DOMAIN: 'cognitiveservices.azure.com'
+      AZURE_AI_ENDPOINT: cognitiveServices.outputs.endpoint
+      AZURE_AI_KEY: ''
+      AZURE_AI_LOCATION: cognitiveServices.outputs.location
+      AZURE_FORM_RECOGNIZER_ENDPOINT: documentIntelligence.outputs.endpoint
+      AZURE_OPENAI_AUTHORITY_HOST: azureEnvironment
+      AZURE_QUEUE_STORAGE_ENDPOINT: storage.outputs.primaryEndpoints.queue
+      AZURE_SEARCH_INDEX: searchIndexName
+      AZURE_SEARCH_SERVICE_ENDPOINT: searchService.outputs.endpoint
       AzureFunctionsJobHost__logging__logLevel__default: 'Trace'
-      FUNCTIONS_EXTENSION_VERSION: '~4'
-      FUNCTIONS_WORKER_RUNTIME: 'python'
       AzureStorageConnection1__blobServiceUri: storage.outputs.primaryEndpoints.blob
       AzureStorageConnection1__queueServiceUri: storage.outputs.primaryEndpoints.queue
       AzureStorageConnection1__tableServiceUri: storage.outputs.primaryEndpoints.table
       BLOB_STORAGE_ACCOUNT: storage.outputs.name
       BLOB_STORAGE_ACCOUNT_ENDPOINT: storage.outputs.primaryEndpoints.blob
+      BLOB_STORAGE_ACCOUNT_LOG_CONTAINER_NAME: 'logs'
       BLOB_STORAGE_ACCOUNT_OUTPUT_CONTAINER_NAME: storageContainerName
       BLOB_STORAGE_ACCOUNT_UPLOAD_CONTAINER_NAME: 'upload'
-      BLOB_STORAGE_ACCOUNT_LOG_CONTAINER_NAME: 'logs'
-      AZURE_QUEUE_STORAGE_ENDPOINT: storage.outputs.primaryEndpoints.queue
       CHUNK_TARGET_SIZE: chunkTargetSize
-      TARGET_PAGES: targetPages
-      FR_API_VERSION: documentIntelligenceApiVersion
-      AZURE_FORM_RECOGNIZER_ENDPOINT: documentIntelligence.outputs.endpoint
-      COSMOSDB_URL: cosmosDb.outputs.endpoint
-      COSMOSDB_LOG_DATABASE_NAME: statusLogDatabaseName
       COSMOSDB_LOG_CONTAINER_NAME: statusLogContainerName
-      PDF_SUBMIT_QUEUE: 'pdf-submit-queue'
-      PDF_POLLING_QUEUE: 'pdf-polling-queue'
-      NON_PDF_SUBMIT_QUEUE: 'non-pdf-submit-queue'
-      MEDIA_SUBMIT_QUEUE: 'media-submit-queue'
-      TEXT_ENRICHMENT_QUEUE: 'text-enrichment-queue'
+      COSMOSDB_LOG_DATABASE_NAME: statusLogDatabaseName
+      COSMOSDB_URL: cosmosDb.outputs.endpoint
+      EMBEDDINGS_QUEUE: 'embeddings-queue'
+      ENABLE_DEV_CODE: string(false)
+      ENRICHMENT_BACKOFF: enrichmentBackoff
+      ENRICHMENT_NAME: cognitiveServices.outputs.name
+      FR_API_VERSION: documentIntelligenceApiVersion
+      FUNCTIONS_EXTENSION_VERSION: '~4'
+      FUNCTIONS_WORKER_RUNTIME: 'python'
       IMAGE_ENRICHMENT_QUEUE: 'image-enrichment-queue'
+      LOCAL_DEBUG: string(false)
+      MAX_ENRICHMENT_REQUEUE_COUNT: maxEnrichmentRequeueCount
+      MAX_POLLING_REQUEUE_COUNT: maxPollingRequeueCount
+      MAX_READ_ATTEMPTS: maxReadAttempts
       MAX_SECONDS_HIDE_ON_UPLOAD: functionMaxSecondsHideOnUpload
       MAX_SUBMIT_REQUEUE_COUNT: maxSubmitRequeueCount
-      POLL_QUEUE_SUBMIT_BACKOFF: pollQueueSubmitBackoff
+      MEDIA_SUBMIT_QUEUE: 'media-submit-queue'
+      NON_PDF_SUBMIT_QUEUE: 'non-pdf-submit-queue'
+      PDF_POLLING_QUEUE: 'pdf-polling-queue'
+      PDF_SUBMIT_QUEUE: 'pdf-submit-queue'
       PDF_SUBMIT_QUEUE_BACKOFF: pdfSubmitQueueBackoff
-      MAX_POLLING_REQUEUE_COUNT: maxPollingRequeueCount
-      SUBMIT_REQUEUE_HIDE_SECONDS: submitRequeueHideSeconds
+      POLL_QUEUE_SUBMIT_BACKOFF: pollQueueSubmitBackoff
       POLLING_BACKOFF: pollingBackoff
-      MAX_READ_ATTEMPTS: maxReadAttempts
-      AZURE_AI_KEY: ''
-      AZURE_AI_ENDPOINT: cognitiveServices.outputs.endpoint
-      ENRICHMENT_NAME: cognitiveServices.outputs.name
-      AZURE_AI_LOCATION: cognitiveServices.outputs.location
+      SUBMIT_REQUEUE_HIDE_SECONDS: submitRequeueHideSeconds
+      TARGET_PAGES: targetPages
       TARGET_TRANSLATION_LANGUAGE: targetTranslationLanguage
-      MAX_ENRICHMENT_REQUEUE_COUNT: maxEnrichmentRequeueCount
-      ENRICHMENT_BACKOFF: enrichmentBackoff
-      EMBEDDINGS_QUEUE: 'embeddings-queue'
-      AZURE_SEARCH_SERVICE_ENDPOINT: searchService.outputs.endpoint
-      AZURE_SEARCH_INDEX: searchIndexName
-      AZURE_AI_CREDENTIAL_DOMAIN: 'cognitiveservices.azure.com'
-      AZURE_OPENAI_AUTHORITY_HOST: azureEnvironment
-      LOCAL_DEBUG: string(false)
+      TEXT_ENRICHMENT_QUEUE: 'text-enrichment-queue'
     }
   }
 }
