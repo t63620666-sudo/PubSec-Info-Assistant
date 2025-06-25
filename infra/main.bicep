@@ -865,7 +865,6 @@ module function 'br/public:avm/res/web/site:0.15.1' = {
     appSettingsKeyValuePairs: {
       AZURE_AI_CREDENTIAL_DOMAIN: 'cognitiveservices.azure.com'
       AZURE_AI_ENDPOINT: cognitiveServices.outputs.endpoint
-      AZURE_AI_KEY: ''
       AZURE_AI_LOCATION: cognitiveServices.outputs.location
       AZURE_FORM_RECOGNIZER_ENDPOINT: documentIntelligence.outputs.endpoint
       AZURE_OPENAI_AUTHORITY_HOST: azureEnvironment
