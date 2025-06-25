@@ -5,7 +5,6 @@ import os
 import azure.functions as func
 import requests
 from azure.storage.blob import BlobServiceClient
-from azure.core.credentials import AzureKeyCredential
 from azure.identity import ManagedIdentityCredential, DefaultAzureCredential, get_bearer_token_provider, AzureAuthorityHosts
 from shared_code.status_log import State, StatusClassification, StatusLog
 from shared_code.utilities import Utilities, MediaType

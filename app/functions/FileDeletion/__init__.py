@@ -8,7 +8,7 @@ from itertools import islice
 import azure.functions as func
 from azure.search.documents import SearchClient
 from azure.storage.blob import BlobServiceClient
-from azure.identity import ManagedIdentityCredential, AzureAuthorityHosts, DefaultAzureCredential, get_bearer_token_provider
+from azure.identity import ManagedIdentityCredential, AzureAuthorityHosts, DefaultAzureCredential
 from shared_code.status_log import State, StatusClassification, StatusLog
 
 azure_blob_storage_endpoint = os.environ["BLOB_STORAGE_ACCOUNT_ENDPOINT"]

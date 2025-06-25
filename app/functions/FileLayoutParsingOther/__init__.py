@@ -4,12 +4,10 @@
 import logging
 import os
 import json
-from enum import Enum
 from io import BytesIO
 import azure.functions as func
-from azure.storage.blob import generate_blob_sas
 from azure.storage.queue import QueueClient, TextBase64EncodePolicy
-from azure.identity import ManagedIdentityCredential, AzureAuthorityHosts, DefaultAzureCredential, get_bearer_token_provider
+from azure.identity import ManagedIdentityCredential, AzureAuthorityHosts, DefaultAzureCredential
 from shared_code.status_log import StatusLog, State, StatusClassification
 from shared_code.utilities import Utilities, MediaType
 
