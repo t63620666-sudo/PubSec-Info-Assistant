@@ -1,19 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import logging
 import os
 import json
 import random
-from collections import namedtuple
-import time
 import azure.functions as func
 from azure.storage.queue import QueueClient, TextBase64EncodePolicy
 from azure.identity import ManagedIdentityCredential, AzureAuthorityHosts, DefaultAzureCredential, get_bearer_token_provider
 import requests
 from shared_code.status_log import StatusLog, State, StatusClassification
-from shared_code.utilities import Utilities, MediaType
-from requests.exceptions import RequestException
+from shared_code.utilities import Utilities
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 
