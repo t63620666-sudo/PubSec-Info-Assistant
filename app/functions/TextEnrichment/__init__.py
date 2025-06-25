@@ -136,9 +136,8 @@ def main(msg: func.QueueMessage) -> None:
 
         # detect language
         headers = {
-            "Ocp-Apim-Subscription-Key": azure_ai_key,
+            'Authorization': f'Bearer {token_provider()}',
             'Content-type': 'application/json',
-            'Ocp-Apim-Subscription-Region': azure_ai_location
         }
 
         data = {

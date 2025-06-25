@@ -70,11 +70,6 @@ API_TRANSLATE_ENDPOINT = (
 )
 
 MAX_CHARS_FOR_DETECTION = 1000
-translator_api_headers = {
-    "Ocp-Apim-Subscription-Key": azure_ai_key,
-    "Content-type": "application/json",
-    "Ocp-Apim-Subscription-Region": azure_ai_location,
-}
 
 # Note that "caption" and "denseCaptions" are only supported in Azure GPU regions (East US, France Central,
 # Korea Central, North Europe, Southeast Asia, West Europe, West US). Remove "caption" and "denseCaptions"
@@ -95,12 +90,7 @@ else:
     GPU_REGION = False
     VISION_ENDPOINT = f"{azure_ai_endpoint}computervision/imageanalysis:analyze?api-version=2023-04-01-preview&features=objects,tags,read&gender-neutral-caption=true"
 
-vision_api_headers = {
-    "Ocp-Apim-Subscription-Key": azure_ai_key,
-    "Content-type": "application/octet-stream",
-    "Accept": "application/json",
-    "Ocp-Apim-Subscription-Region": azure_ai_location,
-}
+
 
 FUNCTION_NAME = "ImageEnrichment"
 
@@ -126,6 +116,11 @@ def detect_language(text):
         }
     }
 
+    translator_api_headers = {
+        'Authorization': f'Bearer {token_provider()}',
+        "Content-type": "application/json"        
+    }
+
     response = requests.post(
         API_DETECT_ENDPOINT, headers=translator_api_headers, json=data
     )
@@ -142,6 +137,11 @@ def detect_language(text):
 def translate_text(text, target_language):
     data = [{"text": text}]
     params = {"to": target_language}
+
+    translator_api_headers = {
+        'Authorization': f'Bearer {token_provider()}',
+        "Content-type": "application/json"        
+    }
 
     response = requests.post(
         API_TRANSLATE_ENDPOINT, headers=translator_api_headers, json=data, params=params
@@ -189,6 +189,12 @@ def main(msg: func.QueueMessage) -> None:
                                                           blob=path)
         image_data = blob_client.download_blob().readall()
         files = {"file": image_data}
+
+        vision_api_headers = {
+            'Authorization': f'Bearer {token_provider()}',
+            "Content-type": "application/octet-stream",
+            "Accept": "application/json",
+        }
         response = requests.post(VISION_ENDPOINT,
                                  headers=vision_api_headers,
                                  data=image_data)
